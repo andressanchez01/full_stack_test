@@ -6,3 +6,12 @@ tmp/
 *.swo
 .env
 *.env
+
+frontend/node_modules
+frontend/.env
+frontend/build
+
+backend/log/
+backend/tmp
+backend/.env
+backend/.bundle
