@@ -1,0 +1,22 @@
+source 'https://rubygems.org'
+
+gem 'sinatra'
+gem 'sinatra-contrib'
+gem 'pg'
+gem 'activerecord'
+gem 'sinatra-activerecord'
+gem 'rake'
+gem 'puma'
+gem 'dotenv'
+gem 'jwt'
+gem 'bcrypt'
+gem 'rack-cors'
+
+group :development, :test do
+  gem 'rspec'
+  gem 'rack-test'
+  gem 'database_cleaner'
+  gem 'factory_bot'
+  gem 'faker'
+  gem 'simplecov'
+end
