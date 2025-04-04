@@ -20,10 +20,7 @@ project/
 
 ---
 
-## *📊 Database Schema (PostgreSQL)*
-```md
-## 📊 Database Schema
-
+## 📊 Database Schema (PostgreSQL)
 ```mermaid
 erDiagram
     PRODUCTS {
@@ -75,8 +72,6 @@ erDiagram
     CUSTOMERS ||--o{ TRANSACTIONS : "places"
     PRODUCTS ||--o{ TRANSACTIONS : "includes"
     TRANSACTIONS ||--o{ DELIVERIES : "has"
-
-```
 
 ```
 
