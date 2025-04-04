@@ -76,3 +76,33 @@ erDiagram
 ```
 
 ---
+
+## 📂 Frontend Structure (React + Redux)
+
+```bash
+project/frontend/src/
+├── actions/                    # Redux actions for API and UI events
+│   ├── productActions.js
+│   ├── customerActions.js
+│   ├── transactionActions.js
+│   └── paymentActions.js
+├── reducers/                   # Redux reducers for state managment
+│   ├── productReducer.js
+│   ├── customerReducer.js
+│   ├── transactionReducer.js
+│   └── index.js
+├── components/                 # Reusable UI components
+│   ├── ProductList/
+│   ├── ProductDetail/
+│   ├── PaymentForm/
+│   ├── DeliveryForm/
+│   ├── PaymentSummary/
+│   └── TransactionResult/
+├── pages/                      # Route based pages
+│   ├── HomePage.js
+│   ├── CheckoutPage.js
+│   └── ResultPage.js
+└── App.js                      # Main app component with routing
+```
+
+---
