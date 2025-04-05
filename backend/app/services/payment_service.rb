@@ -3,6 +3,7 @@ require 'uri'
 require 'json'
 require_relative './result' 
 require 'digest'
+require_relative 'payment_status_service'
 
 class PaymentService
     
@@ -86,16 +87,26 @@ class PaymentService
             http.request(request)
         end
 
-        puts "Response body: #{response.body}" 
-        puts "Response code: #{response.code}"
-
-
         parsed_response = JSON.parse(response.body)
 
-        if parsed_response["data"] && parsed_response["data"]["status"] == "APPROVED"
-            Result.success(parsed_response["data"])
+        if parsed_response['data']
+            transaction_id = parsed_response['data']['id']
+            status = parsed_response["data"]["status"]
+
+            if status == "PENDING"
+                status = PaymentStatusService.poll_transaction_status(transaction_id)
+            end
+            
+            case status
+            when 'APPROVED'
+              Result.success(parsed_response['data'])
+            when 'DECLINED', 'VOIDED', 'ERROR'
+              Result.failure("Payment failed with status: #{status}")
+            else
+              Result.failure("Payment status unknown: #{status}")
+            end
         else
-            Result.failure(parsed_response["error"] ? parsed_response["error"]["message"] : "Payment failed")
+            Result.failure(parsed_response['error'] ? parsed_response['error']['message'] : 'Payment failed')
         end
 
     rescue => e

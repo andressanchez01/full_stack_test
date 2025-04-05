@@ -4,6 +4,7 @@ require 'sinatra/activerecord'
 require 'json'
 require 'dotenv/load'
 require 'rack/cors'
+require 'logger'
 
 # CORS settings
 use Rack::Cors do
