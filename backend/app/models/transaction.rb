@@ -5,17 +5,11 @@ class Transaction < ActiveRecord::Base
   belongs_to :customer
   belongs_to :product
   has_one :delivery, dependent: :destroy
-  
-  enum status: {
-    pending: 'PENDING',
-    completed: 'COMPLETED',
-    failed: 'FAILED'
-  }
 
   validates :transaction_number, presence: true, uniqueness: true
   validates :quantity, presence: true, numericality: { greater_than: 0 }
   validates :total_amount, presence: true, numericality: { greater_than: 0 }
-  validates :status, presence: true, inclusion: { in: statuses.keys.map(&:upcase) }
+  validates :status, presence: true, inclusion: { in: ['PENDING', 'COMPLETED', 'FAILED'] }
   
   before_validation :generate_transaction_number, on: :create
   
