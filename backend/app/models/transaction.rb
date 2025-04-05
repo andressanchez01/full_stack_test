@@ -1,3 +1,4 @@
+require 'active_record'
 require 'securerandom'
 
 class Transaction < ActiveRecord::Base

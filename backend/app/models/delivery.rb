@@ -1,3 +1,5 @@
+require 'active_record'
+
 class Delivery < ActiveRecord::Base
     belongs_to :transaction
   
