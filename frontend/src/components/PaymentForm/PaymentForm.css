@@ -1,0 +1,103 @@
+.payment-form-container {
+    max-width: 500px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+  
+  .payment-form h2 {
+    text-align: center;
+    margin-bottom: 1.5rem;
+    color: #333;
+  }
+  
+  .payment-form .form-group {
+    margin-bottom: 1.25rem;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .payment-form label {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #444;
+  }
+  
+  .payment-form input {
+    padding: 0.6rem 0.8rem;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 1rem;
+  }
+  
+  .payment-form input:focus {
+    outline: none;
+    border-color: #0077cc;
+    box-shadow: 0 0 0 2px rgba(0, 119, 204, 0.2);
+  }
+  
+  .form-row {
+    display: flex;
+    gap: 1rem;
+  }
+  
+  .form-group.half {
+    flex: 1;
+  }
+  
+  .error {
+    color: #e63946;
+    font-size: 0.9rem;
+    margin-top: 0.25rem;
+  }
+  
+  .card-number-input {
+    display: flex;
+    align-items: center;
+    position: relative;
+  }
+  
+  .card-logo {
+    position: absolute;
+    right: 0.75rem;
+    background-color: #f3f3f3;
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #444;
+  }
+  
+  .card-logo.visa {
+    color: #1a1f71;
+  }
+  
+  .card-logo.mastercard {
+    color: #eb001b;
+  }
+  
+  .submit-button {
+    width: 100%;
+    padding: 0.75rem;
+    font-size: 1rem;
+    font-weight: 600;
+    background-color: #0077cc;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+  }
+  
+  .submit-button:hover {
+    background-color: #005fa3;
+  }
+  
+  @media (max-width: 480px) {
+    .form-row {
+      flex-direction: column;
+    }
+  }
+  

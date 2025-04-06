@@ -1,0 +1,50 @@
+.transaction-result-container {
+    max-width: 500px;
+    margin: 3rem auto;
+    padding: 2rem;
+    text-align: center;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    background-color: #fff;
+  }
+  
+  .transaction-result-container.success {
+    border-left: 6px solid #28a745;
+  }
+  
+  .transaction-result-container.error {
+    border-left: 6px solid #dc3545;
+  }
+  
+  .transaction-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+  }
+  
+  .transaction-title {
+    font-size: 1.8rem;
+    margin-bottom: 1rem;
+    color: #333;
+  }
+  
+  .transaction-message {
+    font-size: 1.1rem;
+    color: #555;
+    margin-bottom: 2rem;
+  }
+  
+  .back-button {
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    background-color: #0077cc;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .back-button:hover {
+    background-color: #005fa3;
+  }
+  
