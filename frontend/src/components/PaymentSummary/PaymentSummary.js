@@ -10,7 +10,6 @@ const PaymentSummary = ({ paymentData, onConfirm, onCancel }) => {
     );
   }
 
-  // Asumiendo que el total_amount viene en centavos, lo convertimos a formato moneda.
   const formattedTotal = (paymentData.total_amount / 100).toFixed(2);
 
   return (
