@@ -1,4 +1,3 @@
-// src/reducers/__tests__/productReducer.test.js
 import productReducer from '../productReducer';
 import {
   FETCH_PRODUCTS_REQUEST,
@@ -6,15 +5,17 @@ import {
   FETCH_PRODUCTS_FAILURE,
   FETCH_PRODUCT_DETAIL_REQUEST,
   FETCH_PRODUCT_DETAIL_SUCCESS,
-  FETCH_PRODUCT_DETAIL_FAILURE
+  FETCH_PRODUCT_DETAIL_FAILURE,
 } from '../../actions/productActions';
 
 describe('productReducer', () => {
   const initialState = {
-    products: [],
-    currentProduct: null,
     loading: false,
-    error: null
+    items: [],
+    error: null,
+    loadingDetail: false,
+    detail: null,
+    errorDetail: null,
   };
 
   it('should return the initial state', () => {
@@ -26,7 +27,6 @@ describe('productReducer', () => {
     const expectedState = {
       ...initialState,
       loading: true,
-      error: null
     };
     expect(productReducer(initialState, action)).toEqual(expectedState);
   });
@@ -37,7 +37,7 @@ describe('productReducer', () => {
     const expectedState = {
       ...initialState,
       loading: false,
-      products: mockProducts
+      items: mockProducts,
     };
     expect(productReducer(initialState, action)).toEqual(expectedState);
   });
@@ -48,7 +48,7 @@ describe('productReducer', () => {
     const expectedState = {
       ...initialState,
       loading: false,
-      error
+      error,
     };
     expect(productReducer(initialState, action)).toEqual(expectedState);
   });
@@ -57,8 +57,7 @@ describe('productReducer', () => {
     const action = { type: FETCH_PRODUCT_DETAIL_REQUEST };
     const expectedState = {
       ...initialState,
-      loading: true,
-      error: null
+      loadingDetail: true,
     };
     expect(productReducer(initialState, action)).toEqual(expectedState);
   });
@@ -68,8 +67,8 @@ describe('productReducer', () => {
     const action = { type: FETCH_PRODUCT_DETAIL_SUCCESS, payload: product };
     const expectedState = {
       ...initialState,
-      loading: false,
-      currentProduct: product
+      loadingDetail: false,
+      detail: product,
     };
     expect(productReducer(initialState, action)).toEqual(expectedState);
   });
@@ -79,8 +78,8 @@ describe('productReducer', () => {
     const action = { type: FETCH_PRODUCT_DETAIL_FAILURE, payload: error };
     const expectedState = {
       ...initialState,
-      loading: false,
-      error
+      loadingDetail: false,
+      errorDetail: error,
     };
     expect(productReducer(initialState, action)).toEqual(expectedState);
   });

@@ -6,7 +6,7 @@ import {
   
   const initialState = {
     loading: false,
-    data: null,    // Cambiado de 'result' a 'data'
+    data: null,    
     error: null
   };
   
@@ -15,7 +15,7 @@ import {
       case PROCESS_PAYMENT_REQUEST:
         return { ...state, loading: true, error: null };
       case PROCESS_PAYMENT_SUCCESS:
-        return { ...state, loading: false, data: action.payload }; // 'data' aquí
+        return { ...state, loading: false, data: action.payload }; 
       case PROCESS_PAYMENT_FAILURE:
         return { ...state, loading: false, error: action.payload, data: null };
       default:
