@@ -13,24 +13,20 @@ const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:4567/api';
 export const createTransaction = (transactionData) => {
   return async (dispatch) => {
     dispatch({ type: CREATE_TRANSACTION_REQUEST });
-    
+
     try {
       const response = await axios.post(`${API_URL}/transactions`, transactionData);
-      
-      dispatch({
-        type: CREATE_TRANSACTION_SUCCESS,
-        payload: response.data.data
-      });
-      
-      localStorage.setItem('currentTransaction', JSON.stringify(response.data.data));
-      
-      return response.data.data;
+
+      const data = response.data.data;
+      dispatch({ type: CREATE_TRANSACTION_SUCCESS, payload: data });
+      localStorage.setItem('currentTransaction', JSON.stringify(data));
+
+      return data;
     } catch (error) {
-      dispatch({
-        type: CREATE_TRANSACTION_FAILURE,
-        payload: error.message
-      });
-      throw error;
+      const message = error.response?.data?.message || error.message;
+      dispatch({ type: CREATE_TRANSACTION_FAILURE, payload: message });
+      localStorage.removeItem('currentTransaction');
+      throw new Error(message);
     }
   };
 };
@@ -38,27 +34,23 @@ export const createTransaction = (transactionData) => {
 export const processPayment = (transactionId, cardData) => {
   return async (dispatch) => {
     dispatch({ type: UPDATE_TRANSACTION_REQUEST });
-    
+
     try {
       const response = await axios.put(`${API_URL}/transactions/${transactionId}`, {
         status: 'COMPLETED',
         card_data: cardData
       });
-      
-      dispatch({
-        type: UPDATE_TRANSACTION_SUCCESS,
-        payload: response.data.data
-      });
-      
-      localStorage.setItem('currentTransaction', JSON.stringify(response.data.data));
-      
-      return response.data.data;
+
+      const data = response.data.data;
+      dispatch({ type: UPDATE_TRANSACTION_SUCCESS, payload: data });
+      localStorage.setItem('currentTransaction', JSON.stringify(data));
+
+      return data;
     } catch (error) {
-      dispatch({
-        type: UPDATE_TRANSACTION_FAILURE,
-        payload: error.message
-      });
-      throw error;
+      const message = error.response?.data?.message || error.message;
+      dispatch({ type: UPDATE_TRANSACTION_FAILURE, payload: message });
+      localStorage.removeItem('currentTransaction');
+      throw new Error(message);
     }
   };
 };
@@ -71,7 +63,7 @@ export const resetTransaction = () => {
 export const recoverTransaction = () => {
   return (dispatch) => {
     const savedTransaction = localStorage.getItem('currentTransaction');
-    
+
     if (savedTransaction) {
       dispatch({
         type: CREATE_TRANSACTION_SUCCESS,
