@@ -4,7 +4,7 @@ require 'securerandom'
 class Transaction < ActiveRecord::Base
   belongs_to :customer
   belongs_to :product
-  has_one :delivery, dependent: :destroy
+  has_one :delivery, foreign_key: 'transaction_id', dependent: :destroy
 
   validates :transaction_number, presence: true, uniqueness: true
   validates :quantity, presence: true, numericality: { greater_than: 0 }

@@ -1,7 +1,7 @@
 require 'active_record'
 
 class Delivery < ActiveRecord::Base
-    belongs_to :transaction
+    belongs_to :order_transaction, class_name: 'Transaction', foreign_key: 'transaction_id'
   
     STATUSES = %w[PENDING SHIPPED DELIVERED].freeze
   
