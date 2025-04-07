@@ -5,6 +5,17 @@ require 'json'
 require 'dotenv/load'
 require 'rack/cors'
 require 'logger'
+require 'erb'
+require 'yaml'
+
+Dotenv.load
+
+env = ENV['RACK_ENV'] || 'development'
+db_config_path = './config/database.yml'
+raw_config = ERB.new(File.read(db_config_path)).result
+db_config = YAML.safe_load(raw_config, aliases: true)
+
+set :database, db_config[env]
 
 # CORS settings
 use Rack::Cors do
