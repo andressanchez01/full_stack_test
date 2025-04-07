@@ -71,3 +71,10 @@ post '/api/deliveries' do
   request_body = JSON.parse(request.body.read)
   DeliveryController.create(request_body).to_json
 end
+
+options "*" do
+  response.headers["Allow"] = "GET, POST, PUT, DELETE, OPTIONS"
+  response.headers["Access-Control-Allow-Origin"] = "*"
+  response.headers["Access-Control-Allow-Headers"] = "Origin, Content-Type, Accept, Authorization, Token"
+  200
+end

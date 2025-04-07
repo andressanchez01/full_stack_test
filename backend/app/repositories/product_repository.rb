@@ -1,20 +1,27 @@
+require 'dry/monads'
+require 'dry/monads/result'
+
 class ProductRepository
-    def self.find_all
-      Product.all
+  extend Dry::Monads[:result]
+
+  def self.find_all
+    Product.all
+  end
+
+  def self.find_by_id(id)
+    product = Product.find_by(id: id)
+    product ? Success(product) : Failure("Producto no encontrado")
+  end
+
+  def self.update_stock(id, quantity)
+    result = find_by_id(id)
+    return Failure("Product not found") unless result.success?
+
+    product = result.value!
+    if product.decrease_stock(quantity)
+      Success(product)
+    else
+      Failure("Insufficient stock")
     end
-  
-    def self.find_by_id(id)
-      Product.find_by(id: id)
-    end
-  
-    def self.update_stock(id, quantity)
-      product = find_by_id(id)
-      return Result.failure("Product not found") unless product
-      
-      if product.decrease_stock(quantity)
-        Result.success(product)
-      else
-        Result.failure("Insufficient stock")
-      end
-    end
+  end
 end
