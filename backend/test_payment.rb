@@ -1,7 +1,6 @@
 require 'dotenv/load'
 require_relative './app/services/payment_service'
 require_relative './app/services/payment_status_service'
-require_relative './app/services/result'
 
 class Customer
   attr_accessor :email, :name
@@ -20,31 +19,32 @@ class Transaction
   end
 end
 
-
+# Datos de prueba
 customer = Customer.new("example@test.co", "Test User")
 transaction = Transaction.new("TXN_007", 300000, customer)
 
 card_data = {
-  number: "4242424242424242",
-  cvc: "123",
-  exp_month: "12",
-  exp_year: "30",
-  card_holder: "Test User"
+  cardNumber: "4242424242424242",
+  cvv: "123",
+  expiryMonth: "12",
+  expiryYear: "30",
+  cardHolder: "Test User"
 }
 
-result = PaymentService.process_payment(transaction, card_data)
+begin
+  # Procesar el pago
+  puts "🪵 [TEST_PAYMENT] Iniciando el pago..."
+  payment_data = PaymentService.process_payment(transaction, card_data)
+  puts "✅ [TEST_PAYMENT] Pago iniciado con éxito. ID de transacción: #{payment_data['id']}"
 
-if result.success?
-  transaction_id = result.value["id"]
-  puts "✅ Pago iniciado con éxito. ID de transacción: #{transaction_id}"
-
-  final_status = PaymentStatusService.poll_transaction_status(transaction_id)
+  # Consultar el estado final del pago
+  final_status = PaymentStatusService.poll_transaction_status(payment_data['id'])
 
   if final_status == "APPROVED"
-    puts "✅ Pago aprobado."
+    puts "✅ [TEST_PAYMENT] Pago aprobado."
   else
-    puts "❌ El pago no fue aprobado. Estado final: #{final_status}"
+    puts "❌ [TEST_PAYMENT] El pago no fue aprobado. Estado final: #{final_status}"
   end
-else
-  puts "❌ Error al iniciar el pago: #{result.error}"
+rescue StandardError => e
+  puts "❌ [TEST_PAYMENT] Error al procesar el pago: #{e.message}"
 end

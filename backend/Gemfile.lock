@@ -120,6 +120,7 @@ GEM
       rack-protection (= 4.1.1)
       sinatra (= 4.1.1)
       tilt (~> 2.0)
+    sinatra-cross_origin (0.4.0)
     tilt (2.6.0)
     timeout (0.4.3)
     tzinfo (2.0.6)
@@ -155,6 +156,7 @@ DEPENDENCIES
   sinatra
   sinatra-activerecord
   sinatra-contrib
+  sinatra-cross_origin
   webmock
 
 BUNDLED WITH
