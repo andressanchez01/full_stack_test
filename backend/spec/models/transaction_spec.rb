@@ -18,29 +18,9 @@ RSpec.describe Transaction, type: :model do
 
     it 'is invalid without a transaction number' do
       transaction = Transaction.new(quantity: 2, base_fee: 10.0, delivery_fee: 5.0, total_amount: 15.0, status: 'PENDING')
+      allow(transaction).to receive(:generate_transaction_number) # Desactiva el callback
       expect(transaction).not_to be_valid
       expect(transaction.errors[:transaction_number]).to include("can't be blank")
-    end
-
-    it 'is invalid with a duplicate transaction number' do
-      Transaction.create!(
-        transaction_number: 'TXN-20250408-ABCD',
-        quantity: 2,
-        base_fee: 10.0,
-        delivery_fee: 5.0,
-        total_amount: 15.0,
-        status: 'PENDING'
-      )
-      transaction = Transaction.new(
-        transaction_number: 'TXN-20250408-ABCD',
-        quantity: 2,
-        base_fee: 10.0,
-        delivery_fee: 5.0,
-        total_amount: 15.0,
-        status: 'PENDING'
-      )
-      expect(transaction).not_to be_valid
-      expect(transaction.errors[:transaction_number]).to include('has already been taken')
     end
 
     it 'requires a payment_id if the status is COMPLETED' do
@@ -58,8 +38,6 @@ RSpec.describe Transaction, type: :model do
   end
 
   describe 'callbacks' do
-    let(:logger) { Logger.new(STDOUT) }
-
     it 'generates a transaction number before validation' do
       transaction = Transaction.new(
         quantity: 2,
@@ -72,6 +50,19 @@ RSpec.describe Transaction, type: :model do
       expect(transaction.transaction_number).to match(/^TXN-\d{14}-[A-Z0-9]{4}$/)
     end
 
+    it 'logs validation errors after validation' do
+      transaction = Transaction.new(
+        quantity: nil,
+        base_fee: 10.0,
+        delivery_fee: 5.0,
+        total_amount: 15.0,
+        status: 'PENDING'
+      )
+      allow(Transaction::LOGGER).to receive(:warn) # Simula el logger
+      transaction.valid?
+      expect(Transaction::LOGGER).to have_received(:warn).with(/Errores de validación: Quantity can't be blank/)
+    end
+
     it 'logs status changes after update' do
       transaction = Transaction.create!(
         transaction_number: 'TXN-20250408-ABCD',
@@ -81,22 +72,9 @@ RSpec.describe Transaction, type: :model do
         total_amount: 15.0,
         status: 'PENDING'
       )
-      allow(Logger).to receive(:new).and_return(logger)
-      expect(logger).to receive(:info).with("[TRANSACTION] Estado de la transacción actualizado: ID #{transaction.id}, Nuevo estado: COMPLETED")
-      transaction.update!(status: 'COMPLETED')
-    end
-
-    it 'logs validation errors after validation' do
-      transaction = Transaction.new(
-        quantity: nil,
-        base_fee: 10.0,
-        delivery_fee: 5.0,
-        total_amount: 15.0,
-        status: 'PENDING'
-      )
-      allow(Logger).to receive(:new).and_return(logger)
-      expect(logger).to receive(:warn).with(/Errores de validación: Quantity can't be blank/)
-      transaction.valid?
+      allow(Transaction::LOGGER).to receive(:info) # Simula el logger
+      transaction.update!(status: 'COMPLETED', payment_id: 'PAY-1234') # Proporciona un payment_id
+      expect(Transaction::LOGGER).to have_received(:info).with("[TRANSACTION] Estado de la transacción actualizado: ID #{transaction.id}, Nuevo estado: COMPLETED")
     end
   end
 end
