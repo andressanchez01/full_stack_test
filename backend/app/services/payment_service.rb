@@ -2,16 +2,17 @@ require 'net/http'
 require 'uri'
 require 'json'
 require 'digest'
+require 'logger'
 require_relative 'payment_status_service'
 
 class PaymentService
+  LOGGER = Logger.new(STDOUT) 
   PROVIDER_API_URL = ENV['PROVIDER_API_URL'] || ENV['SANDBOX_API_URL']
   PROVIDER_PUBLIC_KEY = ENV['PROVIDER_PUBLIC_KEY']
   PROVIDER_PRIVATE_KEY = ENV['PROVIDER_PRIVATE_KEY']
 
   def self.process_payment(transaction, card_data)
     begin
-      # Mapea las claves del frontend a las claves esperadas por la API
       formatted_card_data = {
         number: card_data[:cardNumber],
         card_holder: card_data[:cardHolder],
@@ -19,29 +20,25 @@ class PaymentService
         exp_year: card_data[:expiryYear],
         cvc: card_data[:cvv]
       }
-  
-      puts "🪵 [PROCESS_PAYMENT] Datos formateados: #{formatted_card_data.inspect}"
-  
-      # Valida que los datos de la tarjeta estén completos
+
+      LOGGER.info("[PROCESS_PAYMENT] Datos de tarjeta formateados correctamente")
+
       required_fields = %w[number card_holder exp_month exp_year cvc]
       missing_fields = required_fields.select { |field| formatted_card_data[field.to_sym].nil? || formatted_card_data[field.to_sym].strip.empty? }
-  
+
       unless missing_fields.empty?
         raise StandardError, "Datos de la tarjeta incompletos: faltan los campos #{missing_fields.join(', ')}"
       end
-  
-      # Obtén el token de aceptación
+
       acceptance_token = fetch_acceptance_token
-      raise StandardError, "Failed to fetch acceptance token" if acceptance_token.nil?
-  
-      # Crea el token de la tarjeta utilizando los datos formateados
+      raise StandardError, "No se pudo obtener el token de aceptación" if acceptance_token.nil?
+
       card_token = create_card_token(formatted_card_data)
-      raise StandardError, "Failed to create card token" if card_token.nil?
-  
-      # Crea la transacción
+      raise StandardError, "No se pudo crear el token de la tarjeta" if card_token.nil?
+
       create_transaction(transaction, card_token, acceptance_token)
     rescue StandardError => e
-      puts "❌ [PROCESS_PAYMENT] Error al procesar el pago: #{e.message}"
+      LOGGER.error("[PROCESS_PAYMENT] Error al procesar el pago: #{e.message}")
       raise e
     end
   end
@@ -51,9 +48,11 @@ class PaymentService
     uri = URI(url)
     response = Net::HTTP.get(uri)
     data = JSON.parse(response)["data"]
-    data.dig("presigned_acceptance", "acceptance_token") if data
+    token = data.dig("presigned_acceptance", "acceptance_token") if data
+    LOGGER.info("[FETCH_ACCEPTANCE_TOKEN] Token de aceptación obtenido correctamente") if token
+    token
   rescue StandardError => e
-    puts "❌ [FETCH_ACCEPTANCE_TOKEN] Error al obtener el token de aceptación: #{e.message}"
+    LOGGER.error("[FETCH_ACCEPTANCE_TOKEN] Error al obtener el token de aceptación: #{e.message}")
     nil
   end
 
@@ -64,29 +63,27 @@ class PaymentService
       "Authorization" => "Bearer #{PROVIDER_PUBLIC_KEY}",
       "Content-Type" => "application/json"
     }
-  
-    puts "🪵 [CREATE_CARD_TOKEN] URL: #{url}"
-    puts "🪵 [CREATE_CARD_TOKEN] Headers: #{headers.inspect}"
-    puts "🪵 [CREATE_CARD_TOKEN] Body: #{card_data.to_json}"
-  
+
+    LOGGER.info("[CREATE_CARD_TOKEN] Creando token de tarjeta")
+
     response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) do |http|
       request = Net::HTTP::Post.new(uri, headers)
       request.body = card_data.to_json
       http.request(request)
     end
-  
+
     result = JSON.parse(response.body)
-  
+
     if result["data"] && result["data"]["id"]
-      puts "✅ [CREATE_CARD_TOKEN] Token de tarjeta creado: #{result['data']['id']}"
+      LOGGER.info("[CREATE_CARD_TOKEN] Token de tarjeta creado correctamente: #{result['data']['id']}")
       result["data"]["id"]
     else
       error_message = result["error"] ? result["error"]["message"] : "Error desconocido al crear el token de la tarjeta"
-      puts "❌ [CREATE_CARD_TOKEN] Error al crear el token de la tarjeta: #{error_message}"
+      LOGGER.error("[CREATE_CARD_TOKEN] #{error_message}")
       raise StandardError, error_message
     end
   rescue StandardError => e
-    puts "❌ [CREATE_CARD_TOKEN] Excepción al crear el token de la tarjeta: #{e.message}"
+    LOGGER.error("[CREATE_CARD_TOKEN] Excepción al crear el token de la tarjeta: #{e.message}")
     raise e
   end
 
@@ -121,6 +118,8 @@ class PaymentService
       reference: reference
     }.to_json
 
+    LOGGER.info("[CREATE_TRANSACTION] Creando transacción para el pago")
+
     response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) do |http|
       request = Net::HTTP::Post.new(uri, headers)
       request.body = body
@@ -139,19 +138,20 @@ class PaymentService
 
       case status
       when 'APPROVED'
-        puts "✅ [CREATE_TRANSACTION] Pago aprobado: #{parsed_response['data'].inspect}"
+        LOGGER.info("[CREATE_TRANSACTION] Pago aprobado: #{parsed_response['data'].inspect}")
         parsed_response['data']
       when 'DECLINED', 'VOIDED', 'ERROR'
-        raise StandardError, "Payment failed with status: #{status}"
+        raise StandardError, "El pago falló con el estado: #{status}"
       else
-        raise StandardError, "Payment status unknown: #{status}"
+        raise StandardError, "Estado de pago desconocido: #{status}"
       end
     else
-      error_message = parsed_response['error'] ? parsed_response['error']['message'] : 'Payment failed'
+      error_message = parsed_response['error'] ? parsed_response['error']['message'] : 'El pago falló'
+      LOGGER.error("[CREATE_TRANSACTION] #{error_message}")
       raise StandardError, error_message
     end
   rescue StandardError => e
-    puts "❌ [CREATE_TRANSACTION] Error al crear la transacción: #{e.message}"
+    LOGGER.error("[CREATE_TRANSACTION] Error al crear la transacción: #{e.message}")
     raise e
   end
 end

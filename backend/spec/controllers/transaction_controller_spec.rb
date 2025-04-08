@@ -1,103 +1,134 @@
 require 'spec_helper'
 require_relative '../../app/controllers/transaction_controller'
-require_relative '../../app/repositories/transaction_repository'
+require_relative '../../app/services/transaction_service'
 require_relative '../../app/models/transaction'
-require_relative '../../app/services/result'
 
-RSpec.describe TransactionController do
+RSpec.describe TransactionController, type: :controller do
+  let(:transaction) do
+    double(
+      'Transaction',
+      id: 1,
+      total_amount: 150.0,
+      status: 'PENDING',
+      product_id: 1,
+      customer_id: 1,
+      delivery: double('Delivery', address: '123 Main St', city: 'New York'),
+      created_at: Time.now,
+      updated_at: Time.now
+    )
+  end
+
   describe '.create' do
-    let(:params) { { product_id: 1, quantity: 2, customer: { name: 'John Doe', email: 'john@example.com' } } }
-
-    it 'returns success when creation is successful' do
-      transaction = double(:transaction)
-      allow(TransactionService).to receive(:create_transaction).with(params).and_return(Result.success(transaction))
-
-      response = described_class.create(params)
-
-      expect(response[:status]).to eq('success')
-      expect(response[:data]).to eq(transaction)
+    let(:params) do
+      {
+        product_id: 1,
+        customer: { email: 'customer@example.com', name: 'John Doe', phone: '123456789', address: '123 Main St' },
+        quantity: 2,
+        delivery: { address: '123 Main St', city: 'New York', postalCode: '10001' }
+      }
     end
 
-    it 'returns error when creation fails' do
-      allow(TransactionService).to receive(:create_transaction).with(params).and_return(Result.failure('Invalid product'))
+    it 'creates a transaction successfully' do
+      allow(TransactionService).to receive(:create_transaction).and_return(transaction)
+      allow(TransactionController::LOGGER).to receive(:info)
 
-      response = described_class.create(params)
+      result = TransactionController.create(params)
 
-      expect(response[:status]).to eq('error')
-      expect(response[:message]).to eq('Invalid product')
+      expect(result[:status]).to eq('success')
+      expect(result[:data]).to eq(transaction)
+      expect(TransactionController::LOGGER).to have_received(:info).with(/Recibiendo parámetros para crear transacción/)
+      expect(TransactionController::LOGGER).to have_received(:info).with(/Transacción creada con éxito/)
+    end
+
+    it 'handles errors during transaction creation' do
+      allow(TransactionService).to receive(:create_transaction).and_raise(StandardError, 'Creation failed')
+      allow(TransactionController::LOGGER).to receive(:error)
+
+      result = TransactionController.create(params)
+
+      expect(result[:status]).to eq('error')
+      expect(result[:message]).to eq('No se pudo crear la transacción')
+      expect(result[:error]).to eq('Creation failed')
+      expect(TransactionController::LOGGER).to have_received(:error).with(/Error al crear la transacción/)
     end
   end
 
   describe '.update' do
-    let(:transaction_id) { 123 }
+    let(:params) { { status: 'COMPLETED', card_data: { cardNumber: '4111111111111111' } } }
 
-    context 'when status is COMPLETED' do
-      let(:params) { { status: 'COMPLETED', card_data: { card_number: '1234' } } }
+    it 'processes a payment successfully' do
+      allow(TransactionService).to receive(:process_payment).and_return(transaction)
+      allow(TransactionController::LOGGER).to receive(:info)
 
-      it 'processes the payment and returns success' do
-        result = double(:result)
-        allow(TransactionService).to receive(:process_payment).with(transaction_id, params[:card_data]).and_return(Result.success(result))
+      result = TransactionController.update(1, params)
 
-        response = described_class.update(transaction_id, params)
-
-        expect(response[:status]).to eq('success')
-        expect(response[:data]).to eq(result)
-      end
-
-      it 'returns error if card data is missing' do
-        response = described_class.update(transaction_id, { status: 'COMPLETED' })
-
-        expect(response[:status]).to eq('error')
-        expect(response[:message]).to eq('Missing card data for payment processing')
-      end
+      expect(result[:status]).to eq('success')
+      expect(result[:data]).to eq(transaction)
+      expect(TransactionController::LOGGER).to have_received(:info).with(/Recibiendo parámetros para actualizar transacción/)
+      expect(TransactionController::LOGGER).to have_received(:info).with(/Transacción actualizada con éxito/)
     end
 
-    context 'when status is FAILED' do
-      let(:params) { { status: 'FAILED', reason: 'Insufficient funds' } }
-
-      it 'marks the transaction as failed with a reason' do
-        failed_result = double(:failed_result)
-        allow(TransactionService).to receive(:mark_transaction_failed).with(transaction_id, 'Insufficient funds').and_return(Result.success(failed_result))
-
-        response = described_class.update(transaction_id, params)
-
-        expect(response[:status]).to eq('success')
-        expect(response[:data]).to eq(failed_result)
-      end
-
-      it 'uses default reason if none is provided' do
-        allow(TransactionService).to receive(:mark_transaction_failed).with(transaction_id, 'Unknown error').and_return(Result.success('marked'))
-
-        response = described_class.update(transaction_id, { status: 'FAILED' })
-
-        expect(response[:status]).to eq('success')
-        expect(response[:data]).to eq('marked')
-      end
+    it 'marks a transaction as failed' do
+      params = { status: 'FAILED', reason: 'Insufficient funds' }
+      allow(TransactionService).to receive(:mark_transaction_failed).and_return(transaction)
+      allow(TransactionController::LOGGER).to receive(:info)
+    
+      result = TransactionController.update(1, params)
+    
+      expect(result[:status]).to eq('success')
+      expect(result[:data]).to eq(transaction)
+      expect(TransactionController::LOGGER).to have_received(:info).with("[UPDATE] Recibiendo parámetros para actualizar transacción ID=1: #{params.inspect}")
+      expect(TransactionController::LOGGER).to have_received(:info).with("[UPDATE] Transacción marcada como fallida: ID #{transaction.id}")
     end
 
-    context 'when status is invalid' do
-      it 'returns error' do
-        response = described_class.update(transaction_id, { status: 'INVALID' })
+    it 'returns an error for invalid status' do
+      params = { status: 'INVALID' }
+      allow(TransactionController::LOGGER).to receive(:warn)
 
-        expect(response[:status]).to eq('error')
-        expect(response[:message]).to eq('Invalid transaction status')
-      end
+      result = TransactionController.update(1, params)
+
+      expect(result[:status]).to eq('error')
+      expect(result[:message]).to eq('Invalid transaction status')
+      expect(TransactionController::LOGGER).to have_received(:warn).with(/Estado de transacción inválido/)
     end
 
-    context 'when id or status is missing' do
-      it 'returns error if id is nil' do
-        response = described_class.update(nil, { status: 'COMPLETED' })
+    it 'handles errors during update' do
+      allow(TransactionService).to receive(:process_payment).and_raise(StandardError, 'Update failed')
+      allow(TransactionController::LOGGER).to receive(:error)
 
-        expect(response[:status]).to eq('error')
-        expect(response[:message]).to eq('Missing required params')
-      end
+      result = TransactionController.update(1, { status: 'COMPLETED', card_data: { cardNumber: '4111111111111111' } })
 
-      it 'returns error if status is nil' do
-        response = described_class.update(transaction_id, {})
+      expect(result[:status]).to eq('error')
+      expect(result[:message]).to eq('No se pudo actualizar la transacción')
+      expect(result[:error]).to eq('Update failed')
+      expect(TransactionController::LOGGER).to have_received(:error).with(/Error al actualizar la transacción/)
+    end
+  end
 
-        expect(response[:status]).to eq('error')
-        expect(response[:message]).to eq('Missing required params')
-      end
+  describe '.get_by_id' do
+    it 'retrieves a transaction successfully' do
+      allow(Transaction).to receive(:find_by).with(id: 1).and_return(transaction)
+      allow(TransactionController::LOGGER).to receive(:info)
+
+      result = TransactionController.get_by_id(1)
+
+      expect(result[:status]).to eq('success')
+      expect(result[:data][:id]).to eq(transaction.id)
+      expect(result[:data][:delivery][:address]).to eq(transaction.delivery.address)
+      expect(TransactionController::LOGGER).to have_received(:info).with(/Consultando transacción con ID/)
+      expect(TransactionController::LOGGER).to have_received(:info).with(/Transacción encontrada/)
+    end
+
+    it 'returns an error if the transaction is not found' do
+      allow(Transaction).to receive(:find_by).with(id: 1).and_return(nil)
+      allow(TransactionController::LOGGER).to receive(:info)
+
+      result = TransactionController.get_by_id(1)
+
+      expect(result[:status]).to eq('error')
+      expect(result[:message]).to eq('Transacción no encontrada')
+      expect(TransactionController::LOGGER).to have_received(:info).with(/Consultando transacción con ID/)
+      expect(TransactionController::LOGGER).to have_received(:info).with(/Transacción no encontrada/)
     end
   end
 end

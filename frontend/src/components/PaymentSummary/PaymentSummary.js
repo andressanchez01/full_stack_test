@@ -43,10 +43,8 @@ const PaymentSummary = ({
         <p className="payment-summary-total"><strong>Total:</strong> ${totalAmount.toLocaleString()}</p>
 
         <h3>Datos de envío</h3>
-        <p><strong>Nombre:</strong> {deliveryData.fullName}</p>
         <p><strong>Dirección:</strong> {deliveryData.address}</p>
         <p><strong>Ciudad:</strong> {deliveryData.city}</p>
-        <p><strong>País:</strong> {deliveryData.country}</p>
       </div>
 
       <div className="payment-summary-actions">

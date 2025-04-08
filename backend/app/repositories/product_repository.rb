@@ -1,4 +1,8 @@
+require 'logger'
+
 class ProductRepository
+  LOGGER = Logger.new(STDOUT) 
+
   def self.find_all
     Product.all
   end
@@ -7,13 +11,13 @@ class ProductRepository
     begin
       product = Product.find_by(id: id)
       if product
-        puts "✅ [FIND_BY_ID] Producto encontrado: #{product.inspect}"
+        LOGGER.info("[FIND_BY_ID] Producto encontrado: ID=#{product.id}, Nombre=#{product.name}")
         product
       else
-        raise StandardError, "Producto no encontrado"
+        raise StandardError, "Producto con ID #{id} no encontrado"
       end
     rescue StandardError => e
-      puts "❌ [FIND_BY_ID] Error al buscar el producto: #{e.message}"
+      LOGGER.error("[FIND_BY_ID] Error al buscar el producto: #{e.message}")
       raise e
     end
   end
@@ -22,13 +26,13 @@ class ProductRepository
     begin
       product = find_by_id(id)
       if product.decrease_stock(quantity)
-        puts "✅ [UPDATE_STOCK] Stock actualizado para el producto: #{product.inspect}"
+        LOGGER.info("[UPDATE_STOCK] Stock actualizado para el producto: ID=#{product.id}, Nuevo stock=#{product.stock_quantity}")
         product
       else
         raise StandardError, "Stock insuficiente para el producto con ID #{id}"
       end
     rescue StandardError => e
-      puts "❌ [UPDATE_STOCK] Error al actualizar el stock: #{e.message}"
+      LOGGER.error("[UPDATE_STOCK] Error al actualizar el stock: #{e.message}")
       raise e
     end
   end

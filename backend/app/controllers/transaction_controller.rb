@@ -1,59 +1,95 @@
-require 'json'
-
 class TransactionController
+  LOGGER = Logger.new(STDOUT)
+
   def self.create(raw_params)
     params = symbolize_keys(raw_params)
-    puts "🪵 [CREATE] Params recibidos: #{params.inspect}"
+    LOGGER.info("[CREATE] Recibiendo parámetros para crear transacción: #{params.inspect}")
 
     begin
       transaction = TransactionService.create_transaction(params)
-      puts "✅ [CREATE] Transacción creada con éxito: #{transaction.inspect}"
-      { status: 'success', data: transaction }
+      LOGGER.info("[CREATE] Transacción creada con éxito: ID #{transaction.id}")
+
+      {
+        status: 'success',
+        data: transaction
+      }
     rescue StandardError => e
-      puts "❌ [CREATE] Error al crear la transacción: #{e.message}"
-      { status: 'error', message: 'No se pudo crear la transacción', error: e.message }
+      LOGGER.error("[CREATE] Error al crear la transacción: #{e.message}")
+      {
+        status: 'error',
+        message: 'No se pudo crear la transacción',
+        error: e.message
+      }
     end
   end
 
   def self.update(id, raw_params)
-    puts "🪵 [UPDATE] ID recibido: #{id.inspect}, Params recibidos: #{raw_params.inspect}"
     params = symbolize_keys(raw_params)
-
-    unless id && params[:status]
-      puts "❌ [UPDATE] Faltan parámetros requeridos: ID: #{id.inspect}, Status: #{params[:status].inspect}"
-      return { status: 'error', message: 'Missing required params' }
-    end
+    LOGGER.info("[UPDATE] Recibiendo parámetros para actualizar transacción ID=#{id}: #{params.inspect}")
 
     begin
       case params[:status]
       when 'COMPLETED'
-        if params[:card_data].nil?
-          puts "❌ [UPDATE] Faltan datos de la tarjeta para procesar el pago"
-          return { status: 'error', message: 'Missing card data for payment processing' }
-        end
-        puts "🪵 [UPDATE] Procesando pago con datos de tarjeta: #{params[:card_data].inspect}"
         transaction = TransactionService.process_payment(id, params[:card_data])
+        LOGGER.info("[UPDATE] Transacción actualizada con éxito: ID #{transaction.id}")
       when 'FAILED'
-        reason = params[:reason] || 'Unknown error'
-        puts "🪵 [UPDATE] Marcando transacción como fallida con razón: #{reason.inspect}"
-        transaction = TransactionService.mark_transaction_failed(id, reason)
+        transaction = TransactionService.mark_transaction_failed(id, params[:reason])
+        LOGGER.info("[UPDATE] Transacción marcada como fallida: ID #{transaction.id}")
       else
-        puts "❌ [UPDATE] Estado de transacción inválido: #{params[:status].inspect}"
+        LOGGER.warn("[UPDATE] Estado de transacción inválido: #{params[:status]}")
         return { status: 'error', message: 'Invalid transaction status' }
       end
 
-      puts "✅ [UPDATE] Transacción actualizada con éxito: #{transaction.inspect}"
-      { status: 'success', data: transaction }
+      {
+        status: 'success',
+        data: transaction
+      }
     rescue StandardError => e
-      puts "❌ [UPDATE] Error al actualizar la transacción: #{e.message}"
-      { status: 'error', message: 'No se pudo actualizar la transacción', error: e.message }
+      LOGGER.error("[UPDATE] Error al actualizar la transacción: #{e.message}")
+      {
+        status: 'error',
+        message: 'No se pudo actualizar la transacción',
+        error: e.message
+      }
+    end
+  end
+
+  def self.get_by_id(id)
+    LOGGER.info("[GET_BY_ID] Consultando transacción con ID=#{id}")
+
+    transaction = Transaction.find_by(id: id)
+
+    if transaction
+      LOGGER.info("[GET_BY_ID] Transacción encontrada: ID=#{transaction.id}")
+      {
+        status: 'success',
+        data: {
+          id: transaction.id,
+          total_amount: transaction.total_amount,
+          status: transaction.status,
+          product_id: transaction.product_id,
+          customer_id: transaction.customer_id,
+          delivery: {
+            address: transaction.delivery&.address,
+            city: transaction.delivery&.city
+          },
+          created_at: transaction.created_at,
+          updated_at: transaction.updated_at
+        }
+      }
+    else
+      LOGGER.info("[GET_BY_ID] Transacción no encontrada: ID=#{id}")
+      {
+        status: 'error',
+        message: 'Transacción no encontrada'
+      }
     end
   end
 
   private
 
   def self.symbolize_keys(hash)
-    puts "🪵 [SYMBOLIZE_KEYS] Hash recibido: #{hash.inspect}"
+    LOGGER.debug("[SYMBOLIZE_KEYS] Hash recibido: #{hash.inspect}")
     hash.each_with_object({}) do |(k, v), memo|
       key = k.to_sym rescue k
       memo[key] = v.is_a?(Hash) ? symbolize_keys(v) : v
