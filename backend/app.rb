@@ -146,7 +146,7 @@ post '/transactions/webhook' do
 end
 
 set :bind, '0.0.0.0'
-set :port, 4567
+set :port, 3000
 
 puts "🌍 Running in #{env} environment"
 Dotenv.load if File.exist?('.env')
