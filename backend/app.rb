@@ -93,6 +93,11 @@ put '/api/transactions/:id' do
   result.to_json
 end
 
+get '/api/transactions/:id' do
+  content_type :json
+  TransactionController.get_by_id(params[:id]).to_json
+end
+
 # customer routes
 post '/api/customers' do
   content_type :json
