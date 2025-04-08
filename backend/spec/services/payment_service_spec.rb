@@ -1,123 +1,164 @@
 require 'spec_helper'
-require 'webmock/rspec'
+require 'net/http'
+require 'uri'
+require 'json'
 require_relative '../../app/services/payment_service'
-require_relative '../../app/services/result'
-require_relative '../../app/services/payment_status_service'
+require_relative '../../app/models/transaction'
+require_relative '../../app/models/customer'
 
-RSpec.describe PaymentService do
+RSpec.describe PaymentService, type: :service do
+  let(:customer) do
+    Customer.create!(
+      name: 'John Doe',
+      email: 'customer@example.com',
+      phone: '123456789', 
+      address: '123 Main St' 
+    )
+  end
+
   let(:transaction) do
-    double(
-      'Transaction',
+    Transaction.new(
+      transaction_number: 'TXN-1234',
       total_amount: 100.0,
-      transaction_number: 'TX12345',
-      customer: double('Customer', email: 'customer@example.com')
+      customer: customer
     )
   end
 
   let(:card_data) do
     {
-      number: '4111111111111111',
-      expiration_month: '12',
-      expiration_year: '2030',
-      cvc: '123'
+      cardNumber: '4111111111111111',
+      cardHolder: 'John Doe',
+      expiryMonth: '12',
+      expiryYear: '2030',
+      cvv: '123'
     }
-  end
-
-  before do
-    stub_const("PaymentService::PROVIDER_API_URL", "https://api.provider.com")
-    stub_const("PaymentService::PROVIDER_PUBLIC_KEY", "public_key")
-    stub_const("PaymentService::PROVIDER_PRIVATE_KEY", "private_key")
-    stub_const("PaymentService::PROVIDER_INTEGRITY_KEY", "integrity_key")
   end
 
   describe '.process_payment' do
     context 'when the payment is successful' do
-      it 'returns a success result' do
+      it 'processes the payment and logs the event' do
         allow(PaymentService).to receive(:fetch_acceptance_token).and_return('acceptance_token')
         allow(PaymentService).to receive(:create_card_token).and_return('card_token')
-        allow(PaymentService).to receive(:create_transaction).and_return(Result.success({ id: 'transaction_id', status: 'APPROVED' }))
+        allow(PaymentService).to receive(:create_transaction).and_return({ id: 'transaction_id', status: 'APPROVED' })
+        allow(PaymentService::LOGGER).to receive(:info)
 
         result = PaymentService.process_payment(transaction, card_data)
 
-        expect(result).to be_success
-        expect(result.value[:id]).to eq('transaction_id')
+        expect(result).to eq({ id: 'transaction_id', status: 'APPROVED' })
+        expect(PaymentService::LOGGER).to have_received(:info).with("[PROCESS_PAYMENT] Datos de tarjeta formateados correctamente")
       end
     end
 
-    context 'when the card token creation fails' do
-      it 'returns a failure result' do
-        allow(PaymentService).to receive(:fetch_acceptance_token).and_return('acceptance_token')
-        allow(PaymentService).to receive(:create_card_token).and_return(nil)
+    context 'when the card data is incomplete' do
+      it 'raises an error and logs the event' do
+        incomplete_card_data = card_data.merge(cardNumber: nil)
+        allow(PaymentService::LOGGER).to receive(:error)
 
-        result = PaymentService.process_payment(transaction, card_data)
+        expect {
+          PaymentService.process_payment(transaction, incomplete_card_data)
+        }.to raise_error(StandardError, /Datos de la tarjeta incompletos/)
 
-        expect(result).to be_failure
-        expect(result.error).to eq('Failed to create card token')
+        expect(PaymentService::LOGGER).to have_received(:error).with(/Error al procesar el pago:/)
+      end
+    end
+
+    context 'when an error occurs during processing' do
+      it 'raises an error and logs the event' do
+        allow(PaymentService).to receive(:fetch_acceptance_token).and_raise(StandardError, 'Token error')
+        allow(PaymentService::LOGGER).to receive(:error)
+
+        expect {
+          PaymentService.process_payment(transaction, card_data)
+        }.to raise_error(StandardError, 'Token error')
+
+        expect(PaymentService::LOGGER).to have_received(:error).with("[PROCESS_PAYMENT] Error al procesar el pago: Token error")
       end
     end
   end
 
   describe '.fetch_acceptance_token' do
-    it 'returns the acceptance token' do
-      response_body = { data: { presigned_acceptance: { acceptance_token: 'acceptance_token' } } }.to_json
-      stub_request(:get, "https://api.provider.com/merchants/public_key").to_return(body: response_body)
+    context 'when the token is fetched successfully' do
+      it 'returns the token and logs the event' do
+        response_body = { data: { presigned_acceptance: { acceptance_token: 'acceptance_token' } } }.to_json
+        allow(Net::HTTP).to receive(:get).and_return(response_body)
+        allow(PaymentService::LOGGER).to receive(:info)
 
-      token = PaymentService.fetch_acceptance_token
+        token = PaymentService.fetch_acceptance_token
 
-      expect(token).to eq('acceptance_token')
+        expect(token).to eq('acceptance_token')
+        expect(PaymentService::LOGGER).to have_received(:info).with("[FETCH_ACCEPTANCE_TOKEN] Token de aceptación obtenido correctamente")
+      end
     end
 
-    it 'returns nil if an error occurs' do
-      stub_request(:get, "https://api.provider.com/merchants/public_key").to_raise(StandardError.new('Network error'))
+    context 'when an error occurs' do
+      it 'logs the error and returns nil' do
+        allow(Net::HTTP).to receive(:get).and_raise(StandardError, 'Network error')
+        allow(PaymentService::LOGGER).to receive(:error)
 
-      token = PaymentService.fetch_acceptance_token
+        token = PaymentService.fetch_acceptance_token
 
-      expect(token).to be_nil
+        expect(token).to be_nil
+        expect(PaymentService::LOGGER).to have_received(:error).with("[FETCH_ACCEPTANCE_TOKEN] Error al obtener el token de aceptación: Network error")
+      end
     end
   end
 
   describe '.create_card_token' do
-    it 'returns the card token' do
-      response_body = { data: { id: 'card_token' } }.to_json
-      stub_request(:post, "https://api.provider.com/tokens/cards")
-        .with(body: card_data.to_json)
-        .to_return(body: response_body)
+    context 'when the card token is created successfully' do
+      it 'returns the card token and logs the event' do
+        response_body = { data: { id: 'card_token' } }.to_json
+        allow(Net::HTTP).to receive(:start).and_return(double(body: response_body))
+        allow(PaymentService::LOGGER).to receive(:info)
 
-      token = PaymentService.create_card_token(card_data)
+        token = PaymentService.create_card_token(card_data)
 
-      expect(token).to eq('card_token')
+        expect(token).to eq('card_token')
+        expect(PaymentService::LOGGER).to have_received(:info).with("[CREATE_CARD_TOKEN] Token de tarjeta creado correctamente: card_token")
+      end
     end
 
-    it 'returns nil if an error occurs' do
-      stub_request(:post, "https://api.provider.com/tokens/cards").to_raise(StandardError.new('Network error'))
+    context 'when an error occurs' do
+      it 'raises an error and logs the event' do
+        response_body = { error: { message: 'Invalid card data' } }.to_json
+        allow(Net::HTTP).to receive(:start).and_return(double(body: response_body))
+        allow(PaymentService::LOGGER).to receive(:error)
 
-      token = PaymentService.create_card_token(card_data)
+        expect {
+          PaymentService.create_card_token(card_data)
+        }.to raise_error(StandardError, 'Invalid card data')
 
-      expect(token).to be_nil
+        expect(PaymentService::LOGGER).to have_received(:error).with("[CREATE_CARD_TOKEN] Invalid card data")
+      end
     end
   end
 
   describe '.create_transaction' do
-    it 'returns a success result when the transaction is approved' do
-      response_body = { data: { id: 'trx123', status: 'APPROVED' } }.to_json
-      stub_request(:post, "https://api.provider.com/transactions")
-        .to_return(body: response_body)
+    context 'when the transaction is created successfully' do
+      it 'returns the transaction data and logs the event' do
+        response_body = { data: { id: 'transaction_id', status: 'APPROVED' } }.to_json
+        allow(Net::HTTP).to receive(:start).and_return(double(body: response_body))
+        allow(PaymentService::LOGGER).to receive(:info)
 
-      result = PaymentService.create_transaction(transaction, 'card_token', 'acceptance_token')
+        result = PaymentService.create_transaction(transaction, 'card_token', 'acceptance_token')
 
-      expect(result).to be_success
-      expect(result.value['id']).to eq('trx123')
+        expect(result['id']).to eq('transaction_id')
+        expect(result['status']).to eq('APPROVED')
+        expect(PaymentService::LOGGER).to have_received(:info).with("[CREATE_TRANSACTION] Creando transacción para el pago")
+      end
     end
 
-    it 'returns a failure result when the transaction fails' do
-      response_body = { error: { message: 'Payment failed' } }.to_json
-      stub_request(:post, "https://api.provider.com/transactions")
-        .to_return(body: response_body)
+    context 'when an error occurs' do
+      it 'raises an error and logs the event' do
+        response_body = { error: { message: 'Transaction failed' } }.to_json
+        allow(Net::HTTP).to receive(:start).and_return(double(body: response_body))
+        allow(PaymentService::LOGGER).to receive(:error)
 
-      result = PaymentService.create_transaction(transaction, 'card_token', 'acceptance_token')
+        expect {
+          PaymentService.create_transaction(transaction, 'card_token', 'acceptance_token')
+        }.to raise_error(StandardError, 'Transaction failed')
 
-      expect(result).to be_failure
-      expect(result.error).to eq('Payment failed')
+        expect(PaymentService::LOGGER).to have_received(:error).with("[CREATE_TRANSACTION] Transaction failed")
+      end
     end
   end
 end

@@ -45,18 +45,7 @@ ActiveRecord::Schema.define do
     t.integer :stock_quantity
     t.timestamps
   end
-  create_table :transactions, force: true do |t|
-    t.string :transaction_number
-    t.integer :quantity
-    t.decimal :base_fee, precision: 10, scale: 2
-    t.decimal :delivery_fee, precision: 10, scale: 2
-    t.decimal :total_amount, precision: 10, scale: 2
-    t.string :status
-    t.string :payment_id
-    t.references :customer, foreign_key: true
-    t.references :product, foreign_key: true
-    t.timestamps
-  end
+
 end
 
 RSpec.configure do |config|
