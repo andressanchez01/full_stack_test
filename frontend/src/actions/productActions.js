@@ -7,7 +7,7 @@ export const FETCH_PRODUCT_DETAIL_REQUEST = 'FETCH_PRODUCT_DETAIL_REQUEST';
 export const FETCH_PRODUCT_DETAIL_SUCCESS = 'FETCH_PRODUCT_DETAIL_SUCCESS';
 export const FETCH_PRODUCT_DETAIL_FAILURE = 'FETCH_PRODUCT_DETAIL_FAILURE';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:4567/api';
+const API_URL = process.env.REACT_APP_API_URL || 'http://18.188.146.79:3000/api';
 
 export const fetchProducts = () => {
   return async (dispatch) => {

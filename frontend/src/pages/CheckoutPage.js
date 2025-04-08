@@ -34,11 +34,8 @@ const CheckoutPage = () => {
         product_id: product.id,
         quantity,
         delivery: deliveryData,
-        customer: {
-          full_name: deliveryData.fullName,
-          email: deliveryData.email,
-        },
-      })(dispatch); // 👈 Ejecutamos el thunk manualmente con dispatch
+        customer: deliveryData,
+      })(dispatch); 
 
       console.log('✅ Transaction created:', transaction);
 
@@ -64,7 +61,7 @@ const CheckoutPage = () => {
       const updatedTransaction = await processPayment(
         transactionData.id,
         paymentData
-      )(dispatch); // 👈 Ejecutamos el thunk manualmente con dispatch
+      )(dispatch); 
 
       navigate('/result', {
         state: {
