@@ -7,6 +7,33 @@ require 'rack/cors'
 require 'logger'
 require 'erb'
 require 'yaml'
+require 'sinatra/cross_origin'
+
+
+# CORS settings 
+use Rack::Cors do
+  allow do
+    origins '*'
+    resource '*',
+             headers: :any,
+             methods: [:get, :post, :put, :delete, :options]
+  end
+end
+
+configure do
+  enable :cross_origin
+end
+
+before do
+  response.headers['Access-Control-Allow-Origin'] = '*'
+  response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
+  response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Accept, Authorization, Origin'
+end
+
+options "*" do
+  response.headers['Allow'] = 'GET, POST, PUT, DELETE, OPTIONS'
+  200
+end
 
 Dotenv.load
 
@@ -16,14 +43,6 @@ raw_config = ERB.new(File.read(db_config_path)).result
 db_config = YAML.safe_load(raw_config, aliases: true)
 
 set :database, db_config[env]
-
-# CORS settings
-use Rack::Cors do
-  allow do
-    origins '*'
-    resource '*', headers: :any, methods: [:get, :post, :put, :delete, :options]
-  end
-end
 
 # DB settings
 set :database_file, './config/database.yml'
@@ -49,13 +68,29 @@ end
 post '/api/transactions' do
   content_type :json
   request_body = JSON.parse(request.body.read)
-  TransactionController.create(request_body).to_json
+  result = TransactionController.create(request_body)
+
+  if result[:status] == 'success'
+    status 201
+  else
+    status 422
+  end
+
+  result.to_json
 end
 
 put '/api/transactions/:id' do
   content_type :json
   request_body = JSON.parse(request.body.read)
-  TransactionController.update(params[:id], request_body).to_json
+  result = TransactionController.update(params[:id], request_body)
+
+  if result[:status] == 'success'
+    status 200
+  else
+    status 422
+  end
+
+  result.to_json
 end
 
 # customer routes
@@ -70,4 +105,39 @@ post '/api/deliveries' do
   content_type :json
   request_body = JSON.parse(request.body.read)
   DeliveryController.create(request_body).to_json
+end
+
+post '/transactions/webhook' do
+  request.body.rewind
+  payload = JSON.parse(request.body.read, symbolize_names: true)
+
+  puts "🪵 Webhook recibido: #{payload.inspect}"
+
+  # Puedes hacer validaciones aquí si quieres
+  event = payload[:event]
+  transaction_data = payload[:data]
+
+  if event == "transaction.updated" && transaction_data
+    # Actualiza la transacción en tu base de datos si es necesario
+    transaction_id = transaction_data[:id]
+    status = transaction_data[:status]
+
+    if transaction_id && status
+      begin
+        transaction = Transaction.find_by(id: transaction_id)
+        if transaction
+          transaction.update(status: status)
+          puts "✅ Transacción actualizada vía webhook: #{transaction.inspect}"
+        else
+          puts "⚠️ Transacción no encontrada: #{transaction_id}"
+        end
+      rescue => e
+        puts "❌ Error al procesar webhook: #{e.message}"
+      end
+    end
+  end
+
+  content_type :json
+  status 200
+  { status: 'received' }.to_json
 end

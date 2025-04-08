@@ -41,6 +41,14 @@ GEM
     docile (1.4.1)
     dotenv (3.1.7)
     drb (2.2.1)
+    dry-core (1.1.0)
+      concurrent-ruby (~> 1.0)
+      logger
+      zeitwerk (~> 2.6)
+    dry-monads (1.8.3)
+      concurrent-ruby (~> 1.0)
+      dry-core (~> 1.1)
+      zeitwerk (~> 2.6)
     factory_bot (6.5.1)
       activesupport (>= 6.1.0)
     faker (3.5.1)
@@ -112,6 +120,7 @@ GEM
       rack-protection (= 4.1.1)
       sinatra (= 4.1.1)
       tilt (~> 2.0)
+    sinatra-cross_origin (0.4.0)
     tilt (2.6.0)
     timeout (0.4.3)
     tzinfo (2.0.6)
@@ -121,6 +130,7 @@ GEM
       addressable (>= 2.8.0)
       crack (>= 0.3.2)
       hashdiff (>= 0.4.0, < 2.0.0)
+    zeitwerk (2.7.2)
 
 PLATFORMS
   ruby
@@ -131,6 +141,7 @@ DEPENDENCIES
   bcrypt
   database_cleaner
   dotenv
+  dry-monads
   factory_bot
   faker
   jwt
@@ -145,6 +156,7 @@ DEPENDENCIES
   sinatra
   sinatra-activerecord
   sinatra-contrib
+  sinatra-cross_origin
   webmock
 
 BUNDLED WITH

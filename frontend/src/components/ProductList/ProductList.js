@@ -19,7 +19,9 @@ const ProductList = ({ products }) => {
             <h2>{product.name}</h2>
             <p className="product-description">{product.description}</p>
             <div className="product-meta">
-              <span className="product-price">${product.price.toFixed(2)}</span>
+            <span className="product-price">
+              {product.price ? `$${parseFloat(product.price).toFixed(2)}` : 'Precio no disponible'}
+            </span>
               <span className="product-stock">Stock: {product.stock_quantity}</span>
             </div>
             <Link to={`/product/${product.id}`} className="view-product-btn">

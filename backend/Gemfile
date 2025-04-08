@@ -11,6 +11,9 @@ gem 'dotenv'
 gem 'jwt'
 gem 'bcrypt'
 gem 'rack-cors'
+gem 'dry-monads'
+gem 'sinatra-cross_origin'
+
 
 group :development, :test do
   gem 'rspec'

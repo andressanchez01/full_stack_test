@@ -5,18 +5,17 @@ import ProductList from '../components/ProductList/ProductList';
 
 const HomePage = () => {
   const dispatch = useDispatch();
-  const { products, loading, error } = useSelector(state => state.products);
+  const { items: products, loading, error } = useSelector(state => state.products);
 
   useEffect(() => {
     dispatch(fetchProducts());
   }, [dispatch]);
 
-  if (loading) return <div>Cargando productos...</div>;
-  if (error) return <div>Error: {error}</div>;
-
   return (
-    <div className="container mx-auto px-4">
-      <h1 className="text-2xl font-bold my-4">Nuestros Productos</h1>
+    <div className="homepage">
+      <h1>Productos disponibles</h1>
+      {loading && <p>Cargando productos...</p>}
+      {error && <p>Error al cargar productos: {error}</p>}
       <ProductList products={products} />
     </div>
   );

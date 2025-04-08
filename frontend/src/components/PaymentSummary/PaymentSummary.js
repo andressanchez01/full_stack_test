@@ -1,42 +1,65 @@
 import React from 'react';
 import './PaymentSummary.css';
 
-const PaymentSummary = ({ paymentData, onConfirm, onCancel }) => {
-  if (!paymentData) {
+const PaymentSummary = ({
+  product,
+  quantity,
+  paymentData,
+  deliveryData,
+  onConfirm,
+  onCancel
+}) => {
+  const isDataComplete =
+    product && quantity && paymentData && deliveryData;
+
+  if (!isDataComplete) {
     return (
       <div className="payment-summary-empty">
-        No payment information available.
+        Información incompleta para mostrar el resumen.
       </div>
     );
   }
 
-  const formattedTotal = (paymentData.total_amount / 100).toFixed(2);
+  const productTotal = Number(product.price) * quantity;
+  const baseFee = Number(paymentData.base_fee);
+  const deliveryFee = Number(paymentData.delivery_fee);
+  const totalAmount = Number(paymentData.total_amount);
 
   return (
     <div className="payment-summary-container">
-      <h2>Payment Summary</h2>
+      <h2>Resumen de Pago</h2>
+
       <div className="payment-summary-details">
-        <p>
-          <strong>Transaction ID:</strong> {paymentData.id}
-        </p>
-        <p>
-          <strong>Status:</strong> {paymentData.status}
-        </p>
-        <p>
-          <strong>Total Amount:</strong> ${formattedTotal}
-        </p>
-        <p>
-          <strong>Currency:</strong> {paymentData.currency}
-        </p>
-        {/* Puedes agregar más detalles según sea necesario */}
+        <h3>Producto</h3>
+        <p><strong>Nombre:</strong> {product.name}</p>
+        <p><strong>Precio unitario:</strong> ${Number(product.price).toLocaleString()}</p>
+        <p><strong>Cantidad:</strong> {quantity}</p>
+        <p><strong>Subtotal producto:</strong> ${productTotal.toLocaleString()}</p>
+
+        <h3>Tarifas</h3>
+        <p><strong>Tarifa base:</strong> ${baseFee.toLocaleString()}</p>
+        <p><strong>Costo de envío:</strong> ${deliveryFee.toLocaleString()}</p>
+
+        <p className="payment-summary-total"><strong>Total:</strong> ${totalAmount.toLocaleString()}</p>
+
+        <h3>Datos de envío</h3>
+        <p><strong>Nombre:</strong> {deliveryData.fullName}</p>
+        <p><strong>Dirección:</strong> {deliveryData.address}</p>
+        <p><strong>Ciudad:</strong> {deliveryData.city}</p>
+        <p><strong>País:</strong> {deliveryData.country}</p>
       </div>
+
       <div className="payment-summary-actions">
-        <button className="summary-button" onClick={onConfirm}>
-          Confirm
-        </button>
-        <button className="summary-button cancel" onClick={onCancel}>
-          Cancel
-        </button>
+        {onConfirm && (
+          <button className="summary-button" onClick={onConfirm}>
+            Confirmar y pagar
+          </button>
+        )}
+        {onCancel && (
+          <button className="summary-button cancel" onClick={onCancel}>
+            Cancelar
+          </button>
+        )}
       </div>
     </div>
   );
