@@ -4,66 +4,56 @@ require 'json'
 require 'logger'
 
 class PaymentStatusService
-    PROVIDER_API_URL = ENV['PROVIDER_API_URL']
-    LOGGER = Logger.new(STDOUT)
+  PROVIDER_API_URL = ENV['PROVIDER_API_URL']
+  LOGGER = Logger.new(STDOUT) 
 
-    def self.poll_transaction_status(transaction_id, max_attempts: 10, interval: 5)
-        attempts = 0
+  def self.poll_transaction_status(transaction_id, max_attempts: 10, interval: 5)
+    attempts = 0
 
-        loop do
-            attempts += 1
-            status = fetch_transaction_status(transaction_id)
+    loop do
+      attempts += 1
+      status = fetch_transaction_status(transaction_id)
 
-            if final_status?(status)
-                return status
-            elsif attempts >= max_attempts
-                return 'TIMEOUT'
-            else
-                sleep(interval)
-            end
-        end
-    end
-
-    def self.fetch_transaction_status(transaction_id)
-        url = "#{PROVIDER_API_URL}/transactions/#{transaction_id}"
-        uri = URI(url)
-      
-        attempts = 0
-        max_attempts = 5
-      
-        begin
-            response = Net::HTTP.get_response(uri)
-            LOGGER.info("Solicitud GET a #{uri}")
-            LOGGER.info("Código de respuesta: #{response.code}")
-            LOGGER.info("Cuerpo de la respuesta: #{response.body}")
-        
-            if response.is_a?(Net::HTTPSuccess)
-                data = JSON.parse(response.body)
-                status = data.dig('data', 'status')
-                LOGGER.info("Estado de la transacción: #{status}")
-                return status
-            elsif response.code.to_i == 429  # Too Many Requests
-                raise "Too many requests"
-            else
-                LOGGER.error("Error al obtener el estado de la transacción: Código #{response.code}")
-                return nil
-            end
-        rescue => e
-            attempts += 1
-            LOGGER.error("Excepción: #{e.message}")
-            if attempts < max_attempts
-                LOGGER.warn("Reintentando en 10 segundos... (intento #{attempts})")
-                sleep(10)
-                retry
-            else
-                LOGGER.error("Número máximo de reintentos alcanzado")
-                return nil
-            end
-        end
+      if final_status?(status)
+        LOGGER.info("[POLL_TRANSACTION_STATUS] Estado final alcanzado: #{status} (ID=#{transaction_id})")
+        return status
+      elsif attempts >= max_attempts
+        LOGGER.warn("[POLL_TRANSACTION_STATUS] Tiempo de espera agotado para la transacción ID=#{transaction_id}")
+        return 'TIMEOUT'
+      else
+        LOGGER.info("[POLL_TRANSACTION_STATUS] Estado actual: #{status || 'DESCONOCIDO'}. Reintentando en #{interval} segundos... (Intento #{attempts}/#{max_attempts})")
+        sleep(interval)
       end
-      
-
-    def self.final_status?(status)
-        %w[APPROVED DECLINED VOIDED ERROR].include?(status)
     end
+  end
+
+  def self.fetch_transaction_status(transaction_id)
+    url = "#{PROVIDER_API_URL}/transactions/#{transaction_id}"
+    uri = URI(url)
+  
+    begin
+      response = Net::HTTP.get_response(uri)
+      LOGGER.info("[FETCH_TRANSACTION_STATUS] Solicitud GET a #{uri} (ID=#{transaction_id})")
+  
+      if response.is_a?(Net::HTTPSuccess)
+        data = JSON.parse(response.body)
+        status = data.dig('data', 'status')
+        LOGGER.info("[FETCH_TRANSACTION_STATUS] Estado obtenido: #{status} (ID=#{transaction_id})")
+        return status
+      elsif response.code.to_i == 429 
+        LOGGER.error("[FETCH_TRANSACTION_STATUS] Demasiadas solicitudes al servidor (ID=#{transaction_id})")
+        raise StandardError, "Demasiadas solicitudes al servidor (ID=#{transaction_id})"
+      else
+        LOGGER.error("[FETCH_TRANSACTION_STATUS] Error al obtener el estado: Código #{response.code} (ID=#{transaction_id})")
+        return nil
+      end
+    rescue StandardError => e
+      LOGGER.error("[FETCH_TRANSACTION_STATUS] Excepción: #{e.message} (ID=#{transaction_id})")
+      raise e
+    end
+  end
+
+  def self.final_status?(status)
+    %w[APPROVED DECLINED VOIDED ERROR].include?(status)
+  end
 end
