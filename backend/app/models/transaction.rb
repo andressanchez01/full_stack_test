@@ -19,7 +19,7 @@ class Transaction < ActiveRecord::Base
   after_update :log_status_change, if: :saved_change_to_status?
   after_validation :log_validation_errors, if: -> { errors.any? }
 
-  LOGGER = Logger.new(STDOUT) # Logger para registrar eventos
+  LOGGER = Logger.new(STDOUT) 
 
   private
 
