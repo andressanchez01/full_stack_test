@@ -1,5 +1,6 @@
 require 'active_record'
 require 'securerandom'
+require 'logger'
 
 class Transaction < ActiveRecord::Base
   belongs_to :customer
@@ -17,10 +18,23 @@ class Transaction < ActiveRecord::Base
 
   validates :payment_id, presence: true, if: -> { status == 'COMPLETED' }
   before_validation :generate_transaction_number, on: :create
+  after_update :log_status_change, if: :saved_change_to_status?
+  after_validation :log_validation_errors, if: -> { errors.any? }
 
   private
 
   def generate_transaction_number
     self.transaction_number ||= "TXN-#{Time.now.strftime('%Y%m%d%H%M%S')}-#{SecureRandom.hex(2).upcase}"
+  rescue StandardError => e
+    Rails.logger.error("[TRANSACTION] Error al generar el número de transacción: #{e.message}")
+    raise e
+  end
+
+  def log_status_change
+    Rails.logger.info("[TRANSACTION] Estado de la transacción actualizado: ID #{id}, Nuevo estado: #{status}")
+  end
+
+  def log_validation_errors
+    Rails.logger.warn("[TRANSACTION] Errores de validación: #{errors.full_messages.join(', ')}")
   end
 end
