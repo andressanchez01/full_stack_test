@@ -35,8 +35,6 @@ options "*" do
   200
 end
 
-Dotenv.load
-
 env = ENV['RACK_ENV'] || 'development'
 db_config_path = './config/database.yml'
 raw_config = ERB.new(File.read(db_config_path)).result
@@ -146,3 +144,9 @@ post '/transactions/webhook' do
   status 200
   { status: 'received' }.to_json
 end
+
+set :bind, '0.0.0.0'
+set :port, 4567
+
+puts "🌍 Running in #{env} environment"
+Dotenv.load if File.exist?('.env')

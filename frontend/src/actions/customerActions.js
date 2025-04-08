@@ -8,7 +8,7 @@ export const saveCustomer = (customerData) => async (dispatch) => {
   dispatch({ type: SAVE_CUSTOMER_REQUEST });
 
   try {
-    const response = await axios.post('http://localhost:4567/customers', customerData);
+    const response = await axios.post('http://18.188.146.79:3000/customers', customerData);
     dispatch({
       type: SAVE_CUSTOMER_SUCCESS,
       payload: response.data,

@@ -10,7 +10,7 @@ export const UPDATE_TRANSACTION_FAILURE = 'UPDATE_TRANSACTION_FAILURE';
 
 export const RESET_TRANSACTION = 'RESET_TRANSACTION';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:4567/api';
+const API_URL = process.env.REACT_APP_API_URL || 'http://18.188.146.79:3000/api';
 
 /**
  * Crea una nueva transacción en el backend

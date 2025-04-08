@@ -8,7 +8,7 @@ export const processPayment = (paymentData) => async (dispatch) => {
   dispatch({ type: PROCESS_PAYMENT_REQUEST });
 
   try {
-    const response = await axios.post('http://localhost:4567/payments', paymentData);
+    const response = await axios.post('http://18.188.146.79:3000/payments', paymentData);
     dispatch({
       type: PROCESS_PAYMENT_SUCCESS,
       payload: response.data,
