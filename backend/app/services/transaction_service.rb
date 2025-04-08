@@ -18,8 +18,9 @@ class TransactionService
       end
       LOGGER.info("[CREATE_TRANSACTION] Producto encontrado: ID=#{product.id}, Nombre=#{product.name}")
   
-      # Crear o encontrar el cliente
-      customer = CustomerRepository.create_or_find(normalize_customer_data(params[:customer]))
+      normalized_customer = normalize_customer_data(params[:customer])
+      LOGGER.info("[CREATE_TRANSACTION] Customer normalizado: #{normalized_customer.inspect}")
+      customer = CustomerRepository.create_or_find(normalized_customer)
       LOGGER.info("[CREATE_TRANSACTION] Cliente encontrado/creado: ID=#{customer.id}, Email=#{customer.email}")
   
       quantity = params[:quantity].to_i
