@@ -3,53 +3,108 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import PaymentSummary from './PaymentSummary';
 
 describe('PaymentSummary Component', () => {
+  const mockProduct = {
+    name: 'Taza Ruby',
+    price: 10000,
+  };
+
+  const mockPaymentData = {
+    base_fee: 4000,
+    delivery_fee: 9000,
+    total_amount: 23000,
+  };
+
+  const mockDeliveryData = {
+    address: 'Carrera 59 # 70c - 28',
+    city: 'Bogotá',
+  };
+
   const mockOnConfirm = jest.fn();
   const mockOnCancel = jest.fn();
 
-  const paymentData = {
-    id: '12345',
-    status: 'APPROVED',
-    total_amount: 15000, 
-    currency: 'USD',
-  };
-
   beforeEach(() => {
-    mockOnConfirm.mockClear();
-    mockOnCancel.mockClear();
+    jest.clearAllMocks();
   });
 
-  it('renders "No payment information available" when paymentData is null', () => {
-    render(<PaymentSummary paymentData={null} onConfirm={mockOnConfirm} onCancel={mockOnCancel} />);
+  it('renders the payment summary with complete data', () => {
+    render(
+      <PaymentSummary
+        product={mockProduct}
+        quantity={2}
+        paymentData={mockPaymentData}
+        deliveryData={mockDeliveryData}
+        onConfirm={mockOnConfirm}
+        onCancel={mockOnCancel}
+      />
+    );
 
-    expect(screen.getByText(/No payment information available/i)).toBeInTheDocument();
-    expect(screen.queryByText(/Transaction ID:/i)).not.toBeInTheDocument();
+    // Verifica que los datos del producto se rendericen correctamente
+    expect(screen.getByText(/Nombre:/i)).toBeInTheDocument();
+    expect(screen.getByText('Taza Ruby')).toBeInTheDocument();
+    expect(screen.getByText(/Precio unitario:/i)).toBeInTheDocument();
+    expect(screen.getByText('$10,000')).toBeInTheDocument();
+    expect(screen.getByText(/Cantidad:/i)).toBeInTheDocument();
+    expect(screen.getByText('2')).toBeInTheDocument();
+    expect(screen.getByText(/Subtotal producto:/i)).toBeInTheDocument();
+    expect(screen.getByText('$20,000')).toBeInTheDocument();
+
+    // Verifica que las tarifas se rendericen correctamente
+    expect(screen.getByText(/Tarifa base:/i)).toBeInTheDocument();
+    expect(screen.getByText('$4,000')).toBeInTheDocument();
+    expect(screen.getByText(/Costo de envío:/i)).toBeInTheDocument();
+    expect(screen.getByText('$9,000')).toBeInTheDocument();
+    expect(screen.getByText(/Total:/i)).toBeInTheDocument();
+    expect(screen.getByText('$23,000')).toBeInTheDocument();
+
+    // Verifica que los datos de envío se rendericen correctamente
+    expect(screen.getByText(/Dirección:/i)).toBeInTheDocument();
+    expect(screen.getByText('Carrera 59 # 70c - 28')).toBeInTheDocument();
+    expect(screen.getByText(/Ciudad:/i)).toBeInTheDocument();
+    expect(screen.getByText('Bogotá')).toBeInTheDocument();
+
+    // Verifica que los botones se rendericen
+    expect(screen.getByRole('button', { name: /Confirmar y pagar/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Cancelar/i })).toBeInTheDocument();
   });
 
-  it('renders payment details correctly when paymentData is provided', () => {
-    render(<PaymentSummary paymentData={paymentData} onConfirm={mockOnConfirm} onCancel={mockOnCancel} />);
+  it('renders a message when data is incomplete', () => {
+    render(<PaymentSummary product={null} quantity={null} paymentData={null} deliveryData={null} />);
 
-    expect(screen.getByText(/Transaction ID:/i)).toBeInTheDocument();
-    expect(screen.getByText(/12345/i)).toBeInTheDocument();
-    expect(screen.getByText(/Status:/i)).toBeInTheDocument();
-    expect(screen.getByText(/APPROVED/i)).toBeInTheDocument();
-    expect(screen.getByText(/Total Amount:/i)).toBeInTheDocument();
-    expect(screen.getByText(/\$150.00/i)).toBeInTheDocument(); // Total en formato moneda
-    expect(screen.getByText(/Currency:/i)).toBeInTheDocument();
-    expect(screen.getByText(/USD/i)).toBeInTheDocument();
+    expect(screen.getByText(/Información incompleta para mostrar el resumen./i)).toBeInTheDocument();
   });
 
-  it('calls onConfirm when the Confirm button is clicked', () => {
-    render(<PaymentSummary paymentData={paymentData} onConfirm={mockOnConfirm} onCancel={mockOnCancel} />);
+  it('calls onConfirm when the confirm button is clicked', () => {
+    render(
+      <PaymentSummary
+        product={mockProduct}
+        quantity={2}
+        paymentData={mockPaymentData}
+        deliveryData={mockDeliveryData}
+        onConfirm={mockOnConfirm}
+        onCancel={mockOnCancel}
+      />
+    );
 
-    fireEvent.click(screen.getByRole('button', { name: /Confirm/i }));
+    const confirmButton = screen.getByRole('button', { name: /Confirmar y pagar/i });
+    fireEvent.click(confirmButton);
 
     expect(mockOnConfirm).toHaveBeenCalledTimes(1);
   });
 
-  it('calls onCancel when the Cancel button is clicked', () => {
-    render(<PaymentSummary paymentData={paymentData} onConfirm={mockOnConfirm} onCancel={mockOnCancel} />);
+  it('calls onCancel when the cancel button is clicked', () => {
+    render(
+      <PaymentSummary
+        product={mockProduct}
+        quantity={2}
+        paymentData={mockPaymentData}
+        deliveryData={mockDeliveryData}
+        onConfirm={mockOnConfirm}
+        onCancel={mockOnCancel}
+      />
+    );
 
-    fireEvent.click(screen.getByRole('button', { name: /Cancel/i }));
+    const cancelButton = screen.getByRole('button', { name: /Cancelar/i });
+    fireEvent.click(cancelButton);
 
     expect(mockOnCancel).toHaveBeenCalledTimes(1);
   });
