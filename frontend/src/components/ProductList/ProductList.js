@@ -12,8 +12,15 @@ const ProductList = ({ products }) => {
       {products.map(product => (
         <div key={product.id} className="product-card">
           <div className="product-image">
-            {/* Placeholder para imagen del producto */}
-            <div className="placeholder-img"></div>
+            {product.image_url ? (
+              <img
+                src={product.image_url}
+                alt={product.name}
+                className="product-img"
+              />
+            ) : (
+              <div className="placeholder-img">Sin imagen</div>
+            )}
           </div>
           <div className="product-info">
             <h2>{product.name}</h2>
