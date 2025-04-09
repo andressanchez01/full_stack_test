@@ -9,7 +9,6 @@ require 'erb'
 require 'yaml'
 require 'sinatra/cross_origin'
 
-
 # CORS settings 
 use Rack::Cors do
   allow do
