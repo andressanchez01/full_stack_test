@@ -163,6 +163,13 @@ backend/
 
 ```
 ---
+## 📬 Postman Collection
+
+To test the API, you can import the Postman collection:
+
+🔗 [Download Postman Collection](./documentation/postman_collection.json)
+
+---
 # 🚀 Deployment Architecture
 
 This project is deployed using Amazon Web Services (AWS), leveraging the following services:
