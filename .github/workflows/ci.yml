@@ -2,5 +2,5 @@ env:
   DB_ADAPTER: postgresql
   DB_HOST: localhost
   DB_USERNAME: postgres
-  DB_PASSWORD: postgres
-  DB_DATABASE: full_stack_test
+  DB_PASSWORD: password
+  DB_DATABASE: test_db
