@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './TransactionResult.css';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:4567/api';
+const API_URL = process.env.REACT_APP_API_URL || 'http://18.188.146.79:3000/api';
 
 const TransactionResult = () => {
   const location = useLocation();

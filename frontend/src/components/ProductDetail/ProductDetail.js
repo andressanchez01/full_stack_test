@@ -26,8 +26,15 @@ const ProductDetail = ({ product }) => {
   return (
     <div className="product-detail-container">
       <div className="product-detail-image">
-        {/* Placeholder para la imagen */}
-        <div className="placeholder-img-large"></div>
+        {product.image_url ? (
+          <img
+            src={product.image_url}
+            alt={product.name}
+            className="product-detail-img"
+          />
+        ) : (
+          <div className="placeholder-img-large">Sin imagen</div>
+        )}
       </div>
       <div className="product-detail-info">
         <h2>{product.name}</h2>

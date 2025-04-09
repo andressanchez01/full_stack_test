@@ -1,0 +1,18 @@
+.footer {
+    background-color: #e5e7eb; /* bg-gray-200 */
+    color: #1f2937;            /* text-gray-800 */
+    text-align: center;
+    padding-top: 1.5rem;       /* py-6 */
+    padding-bottom: 1.5rem;
+    font-size: 0.875rem;       /* text-sm */
+  }
+  
+  .footer p {
+    margin: 0.25rem 0;
+  }
+  
+  .footer a {
+    text-decoration: underline;
+    color: #1f2937;
+  }
+  

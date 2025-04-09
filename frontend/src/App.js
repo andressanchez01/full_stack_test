@@ -8,17 +8,22 @@ import CheckoutPage from './pages/CheckoutPage';
 import ResultPage from './pages/ResultPage';
 import ProductDetailPage from './pages/ProductDetailPage';
 
+import Footer from './components/Footer/Footer';
+
 function App({ Router = DefaultRouter }) {
   return (
     <Provider store={store}>
       <Router>
-        <div className="App">
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/checkout" element={<CheckoutPage />} />
-            <Route path="/result" element={<ResultPage />} />
-            <Route path="/product/:productId" element={<ProductDetailPage />} />
-          </Routes>
+        <div className="flex flex-col min-h-screen">
+          <div className="App">
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/checkout" element={<CheckoutPage />} />
+              <Route path="/result" element={<ResultPage />} />
+              <Route path="/product/:productId" element={<ProductDetailPage />} />
+            </Routes>
+          </div>
+          <Footer />
         </div>
       </Router>
     </Provider>
