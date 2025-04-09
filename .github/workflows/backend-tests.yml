@@ -28,6 +28,11 @@ jobs:
 
     env:
       RACK_ENV: test
+      DB_ADAPTER: postgresql
+      DB_HOST: localhost
+      DB_USERNAME: postgres
+      DB_PASSWORD: password
+      DB_DATABASE: test_db
       DATABASE_URL: postgres://postgres:password@localhost:5432/test_db
 
     defaults:
@@ -47,8 +52,9 @@ jobs:
       - name: Install dependencies
         run: bundle install
 
-      - name: Setup database
+      - name: Set up database
         run: bundle exec rake db:create db:migrate
 
       - name: Run tests
         run: bundle exec rspec
+
