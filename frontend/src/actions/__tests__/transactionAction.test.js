@@ -32,7 +32,7 @@ describe('transactionActions', () => {
       const responseData = { id: 1, amount: 100, description: 'Test transaction' };
 
       mockAxios
-        .onPost('http://localhost:4567/api/transactions', transactionData)
+        .onPost('http://18.188.146.79:3000/api/transactions', transactionData)
         .reply(200, { data: responseData });
 
       const result = await store.dispatch(createTransaction(transactionData));
@@ -51,7 +51,7 @@ describe('transactionActions', () => {
       const errorMessage = 'Error al crear la transacción';
 
       mockAxios
-        .onPost('http://localhost:4567/api/transactions', transactionData)
+        .onPost('http://18.188.146.79:3000/api/transactions', transactionData)
         .reply(500, { message: errorMessage });
 
       await expect(store.dispatch(createTransaction(transactionData))).rejects.toThrow(errorMessage);
@@ -72,7 +72,7 @@ describe('transactionActions', () => {
       const responseData = { id: 1, status: 'COMPLETED' };
 
       mockAxios
-        .onPut(`http://localhost:4567/api/transactions/${transactionId}`)
+        .onPut(`http://18.188.146.79:3000/api/transactions/${transactionId}`)
         .reply(200, { data: responseData });
 
       const result = await store.dispatch(processPayment(transactionId, cardData));
@@ -92,7 +92,7 @@ describe('transactionActions', () => {
       const errorMessage = 'Error al procesar el pago';
 
       mockAxios
-        .onPut(`http://localhost:4567/api/transactions/${transactionId}`)
+        .onPut(`http://18.188.146.79:3000/api/transactions/${transactionId}`)
         .reply(500, { message: errorMessage });
 
       await expect(store.dispatch(processPayment(transactionId, cardData))).rejects.toThrow(errorMessage);

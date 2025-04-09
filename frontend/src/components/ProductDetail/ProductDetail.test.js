@@ -1,53 +1,106 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
+import { MemoryRouter, useNavigate } from 'react-router-dom';
 import ProductDetail from './ProductDetail';
 
-describe('ProductDetail Component', () => {
-  const mockOnAddToCart = jest.fn();
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
+  useNavigate: jest.fn(),
+}));
 
-  const product = {
-    name: 'Producto de prueba',
-    description: 'Este es un producto de prueba.',
-    price: 99.99,
+describe('ProductDetail Component', () => {
+  const mockNavigate = jest.fn();
+  const mockProduct = {
+    name: 'Taza Ruby',
+    description: 'Una taza para desarrolladores.',
+    price: 15000,
     stock_quantity: 10,
+    image_url: 'https://example.com/taza-ruby.jpg',
   };
 
   beforeEach(() => {
-    mockOnAddToCart.mockClear();
+    jest.clearAllMocks();
+    useNavigate.mockReturnValue(mockNavigate);
   });
 
-  it('renders "Producto no encontrado" when product is null', () => {
-    render(<ProductDetail product={null} onAddToCart={mockOnAddToCart} />);
+  it('renders product details correctly', () => {
+    render(
+      <MemoryRouter>
+        <ProductDetail product={mockProduct} />
+      </MemoryRouter>
+    );
 
-    expect(screen.getByText(/Producto no encontrado/i)).toBeInTheDocument();
-    expect(screen.queryByText(/Precio:/i)).not.toBeInTheDocument();
+    expect(screen.getByText(mockProduct.name)).toBeInTheDocument();
+    expect(screen.getByText(mockProduct.description)).toBeInTheDocument();
+    expect(screen.getByText(`Precio: $${mockProduct.price.toFixed(2)}`)).toBeInTheDocument();
+    expect(screen.getByText(`Stock disponible: ${mockProduct.stock_quantity}`)).toBeInTheDocument();
+    expect(screen.getByAltText(mockProduct.name)).toBeInTheDocument();
   });
 
-  it('renders product details correctly when product is provided', () => {
-    render(<ProductDetail product={product} onAddToCart={mockOnAddToCart} />);
+  it('renders a placeholder image when no image URL is provided', () => {
+    const productWithoutImage = { ...mockProduct, image_url: null };
 
-    expect(screen.getByText(product.name)).toBeInTheDocument();
-    expect(screen.getByText(product.description)).toBeInTheDocument();
-    expect(screen.getByText(/Precio:/i)).toHaveTextContent(`Precio: $${product.price.toFixed(2)}`);
-    expect(screen.getByText(/Stock disponible:/i)).toHaveTextContent(`Stock disponible: ${product.stock_quantity}`);
-    expect(screen.getByRole('button', { name: /Agregar al carrito/i })).toBeInTheDocument();
+    render(
+      <MemoryRouter>
+        <ProductDetail product={productWithoutImage} />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByText('Sin imagen')).toBeInTheDocument();
   });
 
-  it('disables the "Agregar al carrito" button when stock is 0', () => {
-    const outOfStockProduct = { ...product, stock_quantity: 0 };
-    render(<ProductDetail product={outOfStockProduct} onAddToCart={mockOnAddToCart} />);
+  it('disables the "Pagar con tarjeta de crédito" button when stock is 0', () => {
+    const outOfStockProduct = { ...mockProduct, stock_quantity: 0 };
 
-    const button = screen.getByRole('button', { name: /Sin stock/i });
+    render(
+      <MemoryRouter>
+        <ProductDetail product={outOfStockProduct} />
+      </MemoryRouter>
+    );
+
+    const button = screen.getByText('Sin stock');
     expect(button).toBeDisabled();
   });
 
-  it('calls onAddToCart when "Agregar al carrito" button is clicked', () => {
-    render(<ProductDetail product={product} onAddToCart={mockOnAddToCart} />);
+  it('updates the quantity when the input value changes', () => {
+    render(
+      <MemoryRouter>
+        <ProductDetail product={mockProduct} />
+      </MemoryRouter>
+    );
 
-    const button = screen.getByRole('button', { name: /Agregar al carrito/i });
+    const quantityInput = screen.getByLabelText(/Cantidad:/i);
+    expect(quantityInput.value).toBe('1'); // Valor inicial
+
+    fireEvent.change(quantityInput, { target: { value: '5' } });
+    expect(quantityInput.value).toBe('5');
+  });
+
+  it('navigates to the checkout page with the correct state when "Pagar con tarjeta de crédito" is clicked', () => {
+    render(
+      <MemoryRouter>
+        <ProductDetail product={mockProduct} />
+      </MemoryRouter>
+    );
+
+    const button = screen.getByText('Pagar con tarjeta de crédito');
     fireEvent.click(button);
 
-    expect(mockOnAddToCart).toHaveBeenCalledTimes(1);
-    expect(mockOnAddToCart).toHaveBeenCalledWith(product);
+    expect(mockNavigate).toHaveBeenCalledWith('/checkout', {
+      state: {
+        product: mockProduct,
+        quantity: 1,
+      },
+    });
+  });
+
+  it('renders "Producto no encontrado" when no product is provided', () => {
+    render(
+      <MemoryRouter>
+        <ProductDetail product={null} />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByText('Producto no encontrado.')).toBeInTheDocument();
   });
 });
