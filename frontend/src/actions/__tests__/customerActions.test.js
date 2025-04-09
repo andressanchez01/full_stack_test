@@ -23,7 +23,7 @@ describe('customerActions', () => {
     const customerData = { name: 'Juan', email: 'juan@example.com' };
     const responseData = { customerId: 'cust_001', ...customerData };
 
-    mockAxios.onPost('http://localhost:4567/customers', customerData).reply(200, responseData);
+    mockAxios.onPost('http://18.188.146.79:3000/customers', customerData).reply(200, responseData);
 
     await store.dispatch(saveCustomer(customerData));
 
@@ -37,7 +37,7 @@ describe('customerActions', () => {
     const customerData = { name: 'Juan', email: 'juan@example.com' };
     const errorMessage = 'No se pudo guardar el cliente';
 
-    mockAxios.onPost('http://localhost:4567/customers', customerData).reply(500, {
+    mockAxios.onPost('http://18.188.146.79:3000/customers', customerData).reply(500, {
       message: errorMessage,
     });
 
@@ -52,7 +52,7 @@ describe('customerActions', () => {
   it('dispatches SAVE_CUSTOMER_FAILURE with default error message when no response is received', async () => {
     const customerData = { name: 'Juan', email: 'juan@example.com' };
 
-    mockAxios.onPost('http://localhost:4567/customers', customerData).networkError();
+    mockAxios.onPost('http://18.188.146.79:3000/customers', customerData).networkError();
 
     await store.dispatch(saveCustomer(customerData));
 

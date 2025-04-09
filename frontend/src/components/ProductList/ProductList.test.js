@@ -1,71 +1,88 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import { BrowserRouter as Router } from 'react-router-dom';
+import { MemoryRouter } from 'react-router-dom';
 import ProductList from './ProductList';
 
 describe('ProductList Component', () => {
-  const products = [
+  const mockProducts = [
     {
       id: 1,
-      name: 'Producto 1',
-      description: 'Descripción del producto 1',
-      price: 100.0,
-      stock_quantity: 5,
+      name: 'Taza Ruby',
+      description: 'Una taza para desarrolladores.',
+      price: 15000,
+      stock_quantity: 10,
+      image_url: 'https://example.com/taza-ruby.jpg',
     },
     {
       id: 2,
-      name: 'Producto 2',
-      description: 'Descripción del producto 2',
-      price: 200.0,
-      stock_quantity: 0,
+      name: 'Camiseta JavaScript',
+      description: 'Camiseta con diseño de JavaScript.',
+      price: 25000,
+      stock_quantity: 5,
+      image_url: null,
     },
   ];
 
-  it('renders "No hay productos disponibles" when the product list is empty', () => {
+  it('renders a list of products correctly', () => {
     render(
-      <Router>
+      <MemoryRouter>
+        <ProductList products={mockProducts} />
+      </MemoryRouter>
+    );
+
+    // Verifica que los productos se rendericen correctamente
+    expect(screen.getByText('Taza Ruby')).toBeInTheDocument();
+    expect(screen.getByText('Una taza para desarrolladores.')).toBeInTheDocument();
+    expect(screen.getByText('$15000.00')).toBeInTheDocument();
+    expect(screen.getByText('Stock: 10')).toBeInTheDocument();
+    expect(screen.getByAltText('Taza Ruby')).toBeInTheDocument();
+
+    expect(screen.getByText('Camiseta JavaScript')).toBeInTheDocument();
+    expect(screen.getByText('Camiseta con diseño de JavaScript.')).toBeInTheDocument();
+    expect(screen.getByText('$25000.00')).toBeInTheDocument();
+    expect(screen.getByText('Stock: 5')).toBeInTheDocument();
+    expect(screen.getByText('Sin imagen')).toBeInTheDocument();
+  });
+
+  it('renders a placeholder image when no image URL is provided', () => {
+    render(
+      <MemoryRouter>
+        <ProductList products={mockProducts} />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByText('Sin imagen')).toBeInTheDocument();
+  });
+
+  it('renders a message when the product list is empty', () => {
+    render(
+      <MemoryRouter>
         <ProductList products={[]} />
-      </Router>
+      </MemoryRouter>
     );
 
-    expect(screen.getByText(/No hay productos disponibles/i)).toBeInTheDocument();
+    expect(screen.getByText('No hay productos disponibles.')).toBeInTheDocument();
   });
 
-  it('renders the product list correctly', () => {
+  it('renders a message when no products prop is provided', () => {
     render(
-      <Router>
-        <ProductList products={products} />
-      </Router>
+      <MemoryRouter>
+        <ProductList products={null} />
+      </MemoryRouter>
     );
 
-    // Verifica que los nombres de los productos se rendericen
-    expect(screen.getByText(/Producto 1/i)).toBeInTheDocument();
-    expect(screen.getByText(/Producto 2/i)).toBeInTheDocument();
-
-    // Verifica que las descripciones de los productos se rendericen
-    expect(screen.getByText(/Descripción del producto 1/i)).toBeInTheDocument();
-    expect(screen.getByText(/Descripción del producto 2/i)).toBeInTheDocument();
-
-    // Verifica que los precios se rendericen correctamente
-    expect(screen.getByText(/\$100.00/i)).toBeInTheDocument();
-    expect(screen.getByText(/\$200.00/i)).toBeInTheDocument();
-
-    // Verifica que el stock se renderice correctamente
-    expect(screen.getByText(/Stock: 5/i)).toBeInTheDocument();
-    expect(screen.getByText(/Stock: 0/i)).toBeInTheDocument();
-
-    // Verifica que los botones "Ver producto" se rendericen
-    expect(screen.getAllByText(/Ver producto/i)).toHaveLength(2);
+    expect(screen.getByText('No hay productos disponibles.')).toBeInTheDocument();
   });
 
-  it('renders links to the correct product detail pages', () => {
+  it('renders a "Ver producto" link for each product', () => {
     render(
-      <Router>
-        <ProductList products={products} />
-      </Router>
+      <MemoryRouter>
+        <ProductList products={mockProducts} />
+      </MemoryRouter>
     );
 
-    const links = screen.getAllByRole('link', { name: /Ver producto/i });
+    const links = screen.getAllByText('Ver producto');
+    expect(links).toHaveLength(mockProducts.length);
     expect(links[0]).toHaveAttribute('href', '/product/1');
     expect(links[1]).toHaveAttribute('href', '/product/2');
   });

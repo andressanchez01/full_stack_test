@@ -22,7 +22,7 @@ describe('paymentActions', () => {
     const paymentData = { cardNumber: '4111111111111111', amount: 100 };
     const responseData = { transactionId: '12345', status: 'APPROVED' };
 
-    mockAxios.onPost('http://localhost:4567/payments', paymentData).reply(200, responseData);
+    mockAxios.onPost('http://18.188.146.79:3000/payments', paymentData).reply(200, responseData);
 
     await store.dispatch(processPayment(paymentData));
 
@@ -36,7 +36,7 @@ describe('paymentActions', () => {
     const paymentData = { cardNumber: '4111111111111111', amount: 100 };
     const errorMessage = 'Error al procesar el pago';
 
-    mockAxios.onPost('http://localhost:4567/payments', paymentData).reply(500, {
+    mockAxios.onPost('http://18.188.146.79:3000/payments', paymentData).reply(500, {
       message: errorMessage,
     });
 
@@ -51,7 +51,7 @@ describe('paymentActions', () => {
   it('dispatches PROCESS_PAYMENT_FAILURE with default error message when no response is received', async () => {
     const paymentData = { cardNumber: '4111111111111111', amount: 100 };
 
-    mockAxios.onPost('http://localhost:4567/payments', paymentData).networkError();
+    mockAxios.onPost('http://18.188.146.79:3000/payments', paymentData).networkError();
 
     await store.dispatch(processPayment(paymentData));
 

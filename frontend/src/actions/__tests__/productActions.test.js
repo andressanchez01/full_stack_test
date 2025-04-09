@@ -30,7 +30,7 @@ describe('productActions', () => {
         { id: 2, name: 'Producto 2' }
       ];
 
-      mockAxios.onGet('http://localhost:4567/api/products').reply(200, { data: products });
+      mockAxios.onGet('http://18.188.146.79:3000/api/products').reply(200, { data: products });
 
       await store.dispatch(fetchProducts());
 
@@ -41,7 +41,7 @@ describe('productActions', () => {
     });
 
     it('dispatches FETCH_PRODUCTS_FAILURE when fetching products fails', async () => {
-      mockAxios.onGet('http://localhost:4567/api/products').networkError();
+      mockAxios.onGet('http://18.188.146.79:3000/api/products').networkError();
 
       await store.dispatch(fetchProducts());
 
@@ -56,7 +56,7 @@ describe('productActions', () => {
     it('dispatches FETCH_PRODUCT_DETAIL_SUCCESS when product detail is fetched successfully', async () => {
       const product = { id: 1, name: 'Producto 1', description: 'Detalles' };
 
-      mockAxios.onGet('http://localhost:4567/api/products/1').reply(200, { data: product });
+      mockAxios.onGet('http://18.188.146.79:3000/api/products/1').reply(200, { data: product });
 
       await store.dispatch(fetchProductDetail(1));
 
@@ -67,7 +67,7 @@ describe('productActions', () => {
     });
 
     it('dispatches FETCH_PRODUCT_DETAIL_FAILURE when fetching product detail fails', async () => {
-      mockAxios.onGet('http://localhost:4567/api/products/1').networkError();
+      mockAxios.onGet('http://18.188.146.79:3000/api/products/1').networkError();
 
       await store.dispatch(fetchProductDetail(1));
 

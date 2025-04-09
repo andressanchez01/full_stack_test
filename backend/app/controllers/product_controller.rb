@@ -36,7 +36,8 @@ class ProductController
       name: product.name,
       description: product.description,
       price: product.price.to_f,
-      stock_quantity: product.stock_quantity
+      stock_quantity: product.stock_quantity,
+      image_url: product.image_url
     }
   end
 end
