@@ -170,6 +170,24 @@ To test the API, you can import the Postman collection:
 🔗 [Download Postman Collection](./documentation/postman_collection.json)
 
 ---
+## 🧪 Frontend Tests
+Location: .github/workflows/frontend-tests.yml
+
+-Tool: Jest with @testing-library/react
+
+-Trigger: Runs on changes inside the frontend/ directory.
+
+![Frontend Tests](https://github.com/andressanchez01/full_stack_test/actions/workflows/frontend-tests.yml/badge.svg)
+---
+## 🧪 Backtend Tests
+Location: .github/workflows/backend-tests.yml
+
+-Tool: Rspec
+
+-Trigger: Runs on changes inside the backend/ directory.
+
+![Backend Tests](https://github.com/andressanchez01/full_stack_test/actions/workflows/backend-tests.yml/badge.svg)
+---
 # 🚀 Deployment Architecture
 
 This project is deployed using Amazon Web Services (AWS), leveraging the following services:
