@@ -1,0 +1,114 @@
+{
+	"info": {
+		"_postman_id": "829dbafa-9582-4bbc-a93e-30d680eaf80f",
+		"name": "Full Stack Test",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "43772228",
+		"_collection_link": "https://andressanchez-3470517.postman.co/workspace/Andres-Sanchez's-Workspace~aaf85ef6-68dc-455e-896d-5d9411726244/collection/43772228-829dbafa-9582-4bbc-a93e-30d680eaf80f?action=share&source=collection_link&creator=43772228"
+	},
+	"item": [
+		{
+			"name": "Product List",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://18.188.146.79:3000/api/products",
+					"protocol": "http",
+					"host": [
+						"18",
+						"188",
+						"146",
+						"79"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"products"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Product Detail",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://18.188.146.79:3000/api/products/1",
+					"protocol": "http",
+					"host": [
+						"18",
+						"188",
+						"146",
+						"79"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"products",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create Transaction",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"product_id\": 1,\n  \"quantity\": 2,\n  \"customer\": {\n    \"name\": \"Jane Doe\",\n    \"email\": \"jane@example.com\",\n    \"phone\": \"1234567890\",\n    \"address\": \"123 Main St\"\n  },\n  \"delivery\": {\n    \"address\": \"123 Main St\",\n    \"city\": \"Springfield\",\n    \"postalCode\": \"54321\"\n  },\n  \"payment\": {\n     \"number\": \"4242424242424242\",\n      \"cvc\": \"123\",\n      \"exp_month\": \"12\",\n      \"exp_year\": \"30\",\n      \"card_holder\": \"Test User\"\n  }\n}\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://18.188.146.79:3000/api/transactions",
+					"protocol": "http",
+					"host": [
+						"18",
+						"188",
+						"146",
+						"79"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"transactions"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Consult Transaction",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://18.188.146.79:3000/api/transactions/1",
+					"protocol": "http",
+					"host": [
+						"18",
+						"188",
+						"146",
+						"79"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"transactions",
+						"1"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
