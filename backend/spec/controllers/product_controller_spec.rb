@@ -7,7 +7,15 @@ RSpec.describe ProductController do
   describe '.get_all' do
     it 'returns a list of serialized products with success status' do
       products = [
-        double('Product', id: 1, name: 'Test Product', description: 'A test product', price: 100.0, stock_quantity: 10)
+        double(
+          'Product',
+          id: 1,
+          name: 'Test Product',
+          description: 'A test product',
+          price: 100.0,
+          stock_quantity: 10,
+          image_url: 'https://example.com/image.jpg'
+        )
       ]
       allow(ProductRepository).to receive(:find_all).and_return(products)
 
@@ -20,7 +28,8 @@ RSpec.describe ProductController do
           name: 'Test Product',
           description: 'A test product',
           price: 100.0,
-          stock_quantity: 10
+          stock_quantity: 10,
+          image_url: 'https://example.com/image.jpg'
         }
       ])
     end
@@ -29,7 +38,15 @@ RSpec.describe ProductController do
   describe '.get_by_id' do
     context 'when the product exists' do
       it 'returns the serialized product with success status' do
-        product = double('Product', id: 1, name: 'Test Product', description: 'A test product', price: 100.0, stock_quantity: 10)
+        product = double(
+          'Product',
+          id: 1,
+          name: 'Test Product',
+          description: 'A test product',
+          price: 100.0,
+          stock_quantity: 10,
+          image_url: 'https://example.com/image.jpg'
+        )
         allow(ProductRepository).to receive(:find_by_id).with(1).and_return(product)
 
         response = ProductController.get_by_id(1)
@@ -40,7 +57,8 @@ RSpec.describe ProductController do
           name: 'Test Product',
           description: 'A test product',
           price: 100.0,
-          stock_quantity: 10
+          stock_quantity: 10,
+          image_url: 'https://example.com/image.jpg'
         })
       end
     end
