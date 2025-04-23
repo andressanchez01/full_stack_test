@@ -11,6 +11,7 @@ class Transaction < ActiveRecord::Base
   validates :quantity, presence: true, numericality: { greater_than: 0 }
   validates :base_fee, presence: true, numericality: { greater_than_or_equal_to: 0 }
   validates :delivery_fee, presence: true, numericality: { greater_than_or_equal_to: 0 }
+  validates :iva, presence: true, numericality: { greater_than_or_equal_to: 0 }
   validates :total_amount, presence: true, numericality: { greater_than: 0 }
   validates :status, presence: true, inclusion: { in: ['PENDING', 'COMPLETED', 'FAILED'] }
   validates :payment_id, presence: true, if: -> { status == 'COMPLETED' }

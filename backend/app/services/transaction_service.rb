@@ -3,6 +3,7 @@ require 'logger'
 class TransactionService
   BASE_FEE = 4_000
   DELIVERY_FEE = 9_000
+  IVA = 0.19
   LOGGER = Logger.new(STDOUT) 
 
   def self.create_transaction(params)
@@ -94,7 +95,7 @@ class TransactionService
   end
 
   def self.calculate_total(price, quantity)
-    total = (price * quantity) + BASE_FEE + DELIVERY_FEE
+    total = (price * quantity)+ (price * quantity)*IVA + BASE_FEE + DELIVERY_FEE
     LOGGER.debug("[CALCULATE_TOTAL] Precio: #{price}, Cantidad: #{quantity}, Total: #{total}")
     total
   end
@@ -106,6 +107,7 @@ class TransactionService
       quantity: quantity,
       base_fee: BASE_FEE,
       delivery_fee: DELIVERY_FEE,
+      iva: (product.price * quantity) * IVA,
       total_amount: total,
       status: 'PENDING'
     }
