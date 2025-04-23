@@ -26,6 +26,7 @@ const PaymentSummary = ({
   const baseFee = Number(paymentData.base_fee);
   const deliveryFee = Number(paymentData.delivery_fee);
   const totalAmount = Number(paymentData.total_amount);
+  const iva = Number(paymentData.iva);
 
   const handleConfirm = async () => {
     setIsProcessing(true);
@@ -55,6 +56,7 @@ const PaymentSummary = ({
             <p><strong>Precio unitario:</strong> ${Number(product.price).toLocaleString()}</p>
             <p><strong>Cantidad:</strong> {quantity}</p>
             <p><strong>Subtotal producto:</strong> ${productTotal.toLocaleString()}</p>
+            <p><strong>iva:</strong> ${iva.toLocaleString()}</p>
 
             <h3>Tarifas</h3>
             <p><strong>Tarifa base:</strong> ${baseFee.toLocaleString()}</p>
