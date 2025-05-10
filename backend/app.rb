@@ -9,7 +9,6 @@ require 'erb'
 require 'yaml'
 require 'sinatra/cross_origin'
 
-
 # CORS settings 
 use Rack::Cors do
   allow do
@@ -116,12 +115,10 @@ post '/transactions/webhook' do
 
   puts "🪵 Webhook recibido: #{payload.inspect}"
 
-  # Puedes hacer validaciones aquí si quieres
   event = payload[:event]
   transaction_data = payload[:data]
 
   if event == "transaction.updated" && transaction_data
-    # Actualiza la transacción en tu base de datos si es necesario
     transaction_id = transaction_data[:id]
     status = transaction_data[:status]
 
